@@ -1,0 +1,232 @@
+// Prisma schema for Fire Suite Exchange
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  GUEST
+  SELLER
+  ADMIN
+}
+
+enum SuiteArea {
+  NORTH_TERRACE
+  SOUTH_TERRACE
+  LOWER_FIRE
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  DENIED
+}
+
+enum ListingStatus {
+  DRAFT
+  ACTIVE
+  PENDING_MODERATION
+  SOLD
+  WITHDRAWN
+  EXPIRED
+}
+
+enum DeliveryMethod {
+  MOBILE_TRANSFER
+  PAPER
+  PDF
+  WILL_CALL
+  OTHER
+}
+
+// Models
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          UserRole  @default(GUEST)
+  name          String?
+  phone         String?
+  twoFaSecret   String?   @map("twofa_secret")
+  emailVerified DateTime? @map("email_verified")
+  isLocked      Boolean   @default(false) @map("is_locked")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  sellerApplications SellerApplication[]
+  listings           Listing[]
+  messagesSent       Message[]           @relation("MessageFrom")
+  messagesReceived   Message[]           @relation("MessageTo")
+  auditEvents        AuditEvent[]
+  notificationPref   NotificationPref?
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+model Suite {
+  id       String    @id @default(cuid())
+  area     SuiteArea
+  number   Int
+  capacity Int       @default(8)
+  isActive Boolean   @default(true) @map("is_active")
+
+  // Relations
+  applications SellerApplication[]
+  listings     Listing[]
+
+  @@unique([area, number])
+  @@index([area])
+  @@map("suites")
+}
+
+model SellerApplication {
+  id          String            @id @default(cuid())
+  userId      String            @map("user_id")
+  suiteId     String            @map("suite_id")
+  status      ApplicationStatus @default(PENDING)
+  legalName   String            @map("legal_name")
+  message     String?
+  adminNote   String?           @map("admin_note")
+  attachments Json?             @default("[]") // Array of file URLs
+  inviteCode  String?           @map("invite_code")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  decidedAt   DateTime?         @map("decided_at")
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  suite Suite @relation(fields: [suiteId], references: [id])
+
+  @@index([userId])
+  @@index([suiteId])
+  @@index([status])
+  @@map("seller_applications")
+}
+
+model Listing {
+  id              String         @id @default(cuid())
+  sellerId        String         @map("seller_id")
+  suiteId         String         @map("suite_id")
+  eventTitle      String         @map("event_title")
+  eventDatetime   DateTime       @map("event_datetime")
+  quantity        Int
+  pricePerSeat    Decimal        @map("price_per_seat") @db.Decimal(10, 2)
+  deliveryMethod  DeliveryMethod @map("delivery_method")
+  contactEmail    String?        @map("contact_email")
+  contactPhone    String?        @map("contact_phone")
+  contactLink     String?        @map("contact_link")
+  allowMessages   Boolean        @default(false) @map("allow_messages")
+  notes           String?
+  status          ListingStatus  @default(ACTIVE)
+  seatNumbers     String?        @map("seat_numbers") // e.g., "1,2,3,4"
+  slug            String         @unique
+  isFeatured      Boolean        @default(false) @map("is_featured")
+  viewCount       Int            @default(0) @map("view_count")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+  soldAt          DateTime?      @map("sold_at")
+  soldPriceTotal  Decimal?       @map("sold_price_total") @db.Decimal(10, 2)
+  soldBuyerName   String?        @map("sold_buyer_name")
+  soldBuyerEmail  String?        @map("sold_buyer_email")
+
+  // Relations
+  seller User            @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  suite  Suite           @relation(fields: [suiteId], references: [id])
+  images ListingImage[]
+  messages Message[]
+
+  @@index([sellerId])
+  @@index([suiteId])
+  @@index([status])
+  @@index([eventDatetime])
+  @@index([slug])
+  @@map("listings")
+}
+
+model ListingImage {
+  id        String   @id @default(cuid())
+  listingId String   @map("listing_id")
+  url       String
+  alt       String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@map("listing_images")
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  listingId  String   @map("listing_id")
+  fromUserId String   @map("from_user_id")
+  toUserId   String   @map("to_user_id")
+  body       String
+  isRead     Boolean  @default(false) @map("is_read")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  listing  Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  fromUser User    @relation("MessageFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User    @relation("MessageTo", fields: [toUserId], references: [id], onDelete: Cascade)
+
+  @@index([listingId])
+  @@index([fromUserId])
+  @@index([toUserId])
+  @@map("messages")
+}
+
+model AuditEvent {
+  id         String   @id @default(cuid())
+  actorId    String?  @map("actor_id")
+  action     String
+  targetType String   @map("target_type")
+  targetId   String   @map("target_id")
+  metadata   Json?    @default("{}")
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId])
+  @@index([action])
+  @@index([targetType])
+  @@index([createdAt])
+  @@map("audit_events")
+}
+
+model NotificationPref {
+  id          String  @id @default(cuid())
+  userId      String  @unique @map("user_id")
+  emailEnabled Boolean @default(true) @map("email_enabled")
+  smsEnabled  Boolean @default(false) @map("sms_enabled")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_prefs")
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([email])
+  @@index([token])
+  @@map("password_reset_tokens")
+}

@@ -1,0 +1,2 @@
+# This directory stores uploaded files during development
+# In production, use S3, Cloudinary, or similar cloud storage

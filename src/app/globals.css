@@ -1,0 +1,121 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Wispr Flow dark theme - deep teal and rich darks */
+    /* Background: deep navy/teal (#0b0e16) */
+    --background: 220 25% 6%;
+    --foreground: 210 20% 92%;
+
+    /* Card/Panel: elevated surface (#141827) */
+    --card: 220 30% 10%;
+    --card-foreground: 210 20% 92%;
+
+    /* Popover colors */
+    --popover: 220 30% 12%;
+    --popover-foreground: 210 20% 92%;
+
+    /* Primary blue (#4c82ff - vibrant blue) */
+    --primary: 222 100% 65%;
+    --primary-foreground: 0 0% 100%;
+    --primary-50: 222 100% 97%;
+    --primary-100: 222 100% 90%;
+    --primary-600: 222 100% 58%;
+
+    /* Secondary/Surface colors */
+    --secondary: 220 25% 15%;
+    --secondary-foreground: 210 20% 92%;
+
+    /* Muted text (#a5aabc - cool gray) */
+    --muted: 220 20% 18%;
+    --muted-foreground: 220 10% 68%;
+
+    /* Accent teal (#21c1ad - mint/teal) */
+    --accent: 172 70% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders - subtle (#262c3f) */
+    --border: 220 25% 20%;
+    --input: 220 25% 20%;
+    --ring: 222 100% 65%;
+
+    /* Border radius */
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Prevent scroll when mobile menu open */
+  body.menu-open {
+    overflow: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight;
+  }
+
+  /* Smooth transitions with reduced motion support */
+  @media (prefers-reduced-motion: no-preference) {
+    * {
+      transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+}
+
+/* Mobile menu slide-down animation */
+@layer components {
+  .mobile-menu {
+    @apply fixed left-0 right-0 top-14 z-40 overflow-hidden;
+    @apply bg-card border-b border-border shadow-card-elevated;
+    @apply opacity-0 pointer-events-none;
+    transform: translateY(-16px);
+    transition: opacity 180ms ease-out, transform 180ms ease-out;
+  }
+
+  .mobile-menu.open {
+    @apply opacity-100 pointer-events-auto;
+    transform: translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-menu {
+      transition: none;
+      transform: none;
+    }
+    .mobile-menu:not(.open) {
+      display: none;
+    }
+  }
+
+  .mobile-menu-backdrop {
+    @apply fixed inset-0 bg-background/40 backdrop-blur-sm z-30;
+    @apply opacity-0 pointer-events-none;
+    transition: opacity 180ms ease-out;
+  }
+
+  .mobile-menu-backdrop.open {
+    @apply opacity-100 pointer-events-auto;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .mobile-menu-backdrop {
+      transition: none;
+    }
+  }
+}
