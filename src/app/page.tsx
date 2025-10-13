@@ -29,24 +29,24 @@ export default function HomePage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      {/* Header - Minimal sticky nav with slide-down mobile menu */}
-      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur-md">
-        <div className="container mx-auto flex h-14 items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-foreground transition-colors hover:text-primary">
+      {/* Header - Dark teal bar like Wispr Flow */}
+      <header className="sticky top-0 z-50 bg-accent">
+        <div className="container mx-auto flex h-16 items-center justify-between">
+          <Link href="/" className="text-xl font-bold text-accent-foreground transition-opacity hover:opacity-80">
             🔥 Fire Suite Exchange
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden items-center gap-8 md:flex">
-            <Link href="/browse" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+          <nav className="hidden items-center gap-6 md:flex">
+            <Link href="/browse" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
               Browse Listings
             </Link>
-            <Link href="/apply-seller" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+            <Link href="/apply-seller" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
               Become a Seller
             </Link>
             <Link
               href="/login"
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-600 hover:shadow-lg hover:scale-[1.02]"
+              className="rounded-xl border-2 border-accent-foreground bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-600"
             >
               Login
             </Link>
@@ -55,7 +55,7 @@ export default function HomePage() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-foreground hover:bg-muted md:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-accent-foreground hover:bg-accent-foreground/10 md:hidden"
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-menu"
             aria-label="Toggle menu"
@@ -110,24 +110,21 @@ export default function HomePage() {
         </nav>
       </div>
 
-      {/* Hero Section - Large, punchy hero with light theme */}
+      {/* Hero Section - Cream background with mixed serif/sans like Wispr */}
       <main className="flex-1">
-        <section className="relative overflow-hidden bg-gradient-to-b from-primary-50 via-background to-background py-20 sm:py-24 md:py-32 lg:py-40">
+        <section className="relative overflow-hidden bg-background py-20 sm:py-24 md:py-32 lg:py-40">
           <div className="container mx-auto text-center">
-            <h1 className="mx-auto mb-6 max-w-4xl text-4xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
-              Ford Amphitheater{' '}
-              <span className="text-primary">
-                Fire Suite Exchange
-              </span>
+            <h1 className="mx-auto mb-6 max-w-4xl text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+              <span className="font-serif italic text-muted-foreground/60">Don't wait,</span>{' '}
+              <span className="font-sans font-bold text-foreground">find your tickets</span>
             </h1>
-            <p className="mx-auto mb-10 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl md:mb-12">
-              The trusted marketplace for verified Fire Suite owners to buy and sell tickets at
-              Ford Amphitheater in Colorado Springs.
+            <p className="mx-auto mb-10 max-w-2xl text-lg font-semibold leading-relaxed text-foreground/80 sm:text-xl md:mb-12">
+              The trusted marketplace for Fire Suite owners at Ford Amphitheater in Colorado Springs
             </p>
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
                 href="/browse"
-                className="group inline-flex h-12 items-center justify-center rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-md transition-all hover:scale-[1.02] hover:bg-primary-600 hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98]"
+                className="group inline-flex h-12 items-center justify-center rounded-xl border-2 border-foreground bg-primary px-6 text-base font-semibold text-foreground transition-all hover:bg-primary-600 active:scale-[0.98]"
               >
                 Browse Tickets
                 <svg
@@ -141,7 +138,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/apply-seller"
-                className="inline-flex h-12 items-center justify-center rounded-xl border-2 border-primary bg-background px-8 text-base font-semibold text-primary transition-all hover:bg-primary-50"
+                className="inline-flex h-12 items-center justify-center rounded-xl border-2 border-foreground bg-background px-6 text-base font-semibold text-foreground transition-all hover:bg-secondary"
               >
                 List Your Tickets
               </Link>
@@ -162,7 +159,7 @@ export default function HomePage() {
                     🔵
                   </div>
                   <h3 className="mb-3 text-heading-sm font-semibold text-foreground">North Terrace</h3>
-                  <p className="text-sm text-muted-foreground">Suites 1-20 • 8 seats each</p>
+                  <p className="text-sm text-foreground/70">Suites 1-20 • 8 seats each</p>
                   <div className="mt-4 flex items-center text-sm font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
                     View listings
                     <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,7 +175,7 @@ export default function HomePage() {
                     🟣
                   </div>
                   <h3 className="mb-3 text-heading-sm font-semibold text-foreground">South Terrace</h3>
-                  <p className="text-sm text-muted-foreground">Suites 1-20 • 8 seats each</p>
+                  <p className="text-sm text-foreground/70">Suites 1-20 • 8 seats each</p>
                   <div className="mt-4 flex items-center text-sm font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
                     View listings
                     <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -194,7 +191,7 @@ export default function HomePage() {
                     🟠
                   </div>
                   <h3 className="mb-3 text-heading-sm font-semibold text-foreground">Lower Fire Suites</h3>
-                  <p className="text-sm text-muted-foreground">Suites 1-90 • 8 seats each</p>
+                  <p className="text-sm text-foreground/70">Suites 1-90 • 8 seats each</p>
                   <div className="mt-4 flex items-center text-sm font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
                     View listings
                     <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -219,7 +216,7 @@ export default function HomePage() {
                   1
                 </div>
                 <h3 className="mb-3 text-heading-sm font-semibold text-foreground">Browse Listings</h3>
-                <p className="leading-relaxed text-muted-foreground">
+                <p className="leading-relaxed text-foreground/70">
                   Search verified listings from Fire Suite owners. Filter by event, price, and
                   suite location.
                 </p>
@@ -230,7 +227,7 @@ export default function HomePage() {
                   2
                 </div>
                 <h3 className="mb-3 text-heading-sm font-semibold text-foreground">Contact Seller</h3>
-                <p className="leading-relaxed text-muted-foreground">
+                <p className="leading-relaxed text-foreground/70">
                   Reach out directly via email, phone, or message to arrange purchase and delivery.
                 </p>
               </div>
@@ -240,7 +237,7 @@ export default function HomePage() {
                   3
                 </div>
                 <h3 className="mb-3 text-heading-sm font-semibold text-foreground">Enjoy the Show</h3>
-                <p className="leading-relaxed text-muted-foreground">
+                <p className="leading-relaxed text-foreground/70">
                   Complete your transaction safely and enjoy world-class entertainment from your
                   Fire Suite.
                 </p>
@@ -249,26 +246,23 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* CTA Section - Prominent repeated CTA */}
+        {/* CTA Section - Prominent card with cream theme */}
         <section className="py-16 md:py-24">
           <div className="container mx-auto">
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary-600 px-8 py-16 text-center shadow-card-elevated md:px-12 md:py-20">
+            <div className="relative overflow-hidden rounded-3xl border-2 border-foreground bg-primary px-8 py-16 text-center md:px-12 md:py-20">
               <div className="relative z-10">
-                <h2 className="mb-4 text-3xl font-bold text-white md:text-4xl lg:text-5xl">Own a Fire Suite?</h2>
-                <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-white/90">
+                <h2 className="mb-4 text-3xl font-bold text-foreground md:text-4xl lg:text-5xl">Own a Fire Suite?</h2>
+                <p className="mx-auto mb-8 max-w-2xl text-lg font-semibold leading-relaxed text-foreground/90">
                   Join our platform as a verified seller. List your tickets quickly and connect with
                   thousands of fans.
                 </p>
                 <Link
                   href="/apply-seller"
-                  className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-8 text-base font-semibold text-primary shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
+                  className="inline-flex h-12 items-center justify-center rounded-xl border-2 border-foreground bg-background px-8 text-base font-semibold text-foreground transition-all hover:bg-secondary active:scale-[0.98]"
                 >
                   Apply to Become a Seller
                 </Link>
               </div>
-              {/* Subtle decorative elements */}
-              <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
-              <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
             </div>
           </div>
         </section>

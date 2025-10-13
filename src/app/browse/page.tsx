@@ -66,24 +66,24 @@ export default function BrowsePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header - Minimal sticky nav with slide-down mobile menu */}
-      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur-md">
-        <div className="container mx-auto flex h-14 items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-foreground transition-colors hover:text-primary">
+      {/* Header - Dark teal bar like Wispr Flow */}
+      <header className="sticky top-0 z-50 bg-accent">
+        <div className="container mx-auto flex h-16 items-center justify-between">
+          <Link href="/" className="text-xl font-bold text-accent-foreground transition-opacity hover:opacity-80">
             🔥 Fire Suite Exchange
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden items-center gap-8 md:flex">
-            <Link href="/browse" className="text-sm font-medium text-primary">
+          <nav className="hidden items-center gap-6 md:flex">
+            <Link href="/browse" className="text-sm font-medium text-accent-foreground">
               Browse Listings
             </Link>
-            <Link href="/apply-seller" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+            <Link href="/apply-seller" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
               Become a Seller
             </Link>
             <Link
               href="/login"
-              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-600 hover:shadow-lg hover:scale-[1.02]"
+              className="rounded-xl border-2 border-accent-foreground bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-600"
             >
               Login
             </Link>
@@ -92,7 +92,7 @@ export default function BrowsePage() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="flex h-10 w-10 items-center justify-center rounded-lg text-foreground hover:bg-muted md:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-lg text-accent-foreground hover:bg-accent-foreground/10 md:hidden"
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-menu"
             aria-label="Toggle menu"
@@ -125,21 +125,21 @@ export default function BrowsePage() {
         <nav className="container mx-auto flex flex-col gap-1 py-4">
           <Link
             href="/browse"
-            className="rounded-lg px-4 py-3 text-sm font-medium text-primary transition-colors hover:bg-muted"
+            className="rounded-lg px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
             onClick={() => setMobileMenuOpen(false)}
           >
             Browse Listings
           </Link>
           <Link
             href="/apply-seller"
-            className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="rounded-lg px-4 py-3 text-sm font-medium text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground"
             onClick={() => setMobileMenuOpen(false)}
           >
             Become a Seller
           </Link>
           <Link
             href="/login"
-            className="mt-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-600"
+            className="mt-2 rounded-xl border-2 border-foreground bg-primary px-4 py-3 text-center text-sm font-semibold text-foreground transition-all hover:bg-primary-600"
             onClick={() => setMobileMenuOpen(false)}
           >
             Login
@@ -153,7 +153,7 @@ export default function BrowsePage() {
           <h1 className="mb-3 text-heading-lg font-bold text-foreground">
             Browse Fire Suite Tickets
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-foreground/70">
             {!loading && listings.length > 0
               ? `${listings.length} active listings available.`
               : 'View all available suite tickets.'}
@@ -164,7 +164,7 @@ export default function BrowsePage() {
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
               <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
-              <p className="mt-4 text-muted-foreground">Loading listings...</p>
+              <p className="mt-4 text-foreground/70">Loading listings...</p>
             </div>
           </div>
         ) : listings.length > 0 ? (
@@ -175,7 +175,7 @@ export default function BrowsePage() {
                   <h3 className="mb-2 line-clamp-2 text-lg font-semibold text-foreground">
                     {listing.eventTitle}
                   </h3>
-                  <p className="mb-4 text-sm text-muted-foreground">
+                  <p className="mb-4 text-sm text-foreground/70">
                     {new Date(listing.eventDatetime).toLocaleDateString('en-US', {
                       month: 'short',
                       day: 'numeric',
@@ -186,11 +186,11 @@ export default function BrowsePage() {
 
                   <div className="mb-5 space-y-2 border-t border-border pt-4">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Price per seat</span>
-                      <span className="text-xl font-bold text-primary">${listing.pricePerSeat}</span>
+                      <span className="text-sm text-foreground/70">Price per seat</span>
+                      <span className="text-xl font-bold text-foreground">${listing.pricePerSeat}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Available seats</span>
+                      <span className="text-sm text-foreground/70">Available seats</span>
                       <span className="text-base font-semibold text-foreground">{listing.quantity}</span>
                     </div>
                   </div>
@@ -198,14 +198,14 @@ export default function BrowsePage() {
                   <div className="flex flex-col gap-2">
                     <Link
                       href={`/listing/${listing.slug}`}
-                      className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-md transition-all hover:scale-[1.02] hover:bg-primary-600 hover:shadow-lg active:scale-[0.98]"
+                      className="inline-flex h-10 w-full items-center justify-center rounded-xl border-2 border-foreground bg-primary px-4 text-sm font-semibold text-foreground transition-all hover:bg-primary-600 active:scale-[0.98]"
                     >
                       View Details
                     </Link>
                     {listing.contactEmail && (
                       <a
                         href={`mailto:${listing.contactEmail}`}
-                        className="inline-flex h-10 w-full items-center justify-center rounded-xl border-2 border-primary bg-background px-4 text-sm font-semibold text-primary transition-all hover:bg-primary-50"
+                        className="inline-flex h-10 w-full items-center justify-center rounded-xl border-2 border-foreground bg-background px-4 text-sm font-semibold text-foreground transition-all hover:bg-secondary"
                       >
                         Contact Seller
                       </a>
@@ -221,12 +221,12 @@ export default function BrowsePage() {
             <h3 className="mb-3 text-heading-sm font-semibold text-foreground">
               No Active Listings
             </h3>
-            <p className="mb-8 text-muted-foreground">
+            <p className="mb-8 text-foreground/70">
               There are currently no tickets available. Check back soon or become a seller to list your tickets.
             </p>
             <Link
               href="/apply-seller"
-              className="inline-flex h-12 items-center justify-center rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-md transition-all hover:scale-[1.02] hover:bg-primary-600 hover:shadow-lg active:scale-[0.98]"
+              className="inline-flex h-12 items-center justify-center rounded-xl border-2 border-foreground bg-primary px-8 text-base font-semibold text-foreground transition-all hover:bg-primary-600 active:scale-[0.98]"
             >
               Become a Seller
             </Link>
@@ -237,21 +237,21 @@ export default function BrowsePage() {
         {!loading && listings.length > 0 && (
           <div className="mt-12 rounded-2xl border border-primary/20 bg-primary-50 p-8">
             <h3 className="mb-4 text-heading-sm font-semibold text-foreground">How to Purchase</h3>
-            <ol className="space-y-3 text-base text-muted-foreground">
+            <ol className="space-y-3 text-base text-foreground/70">
               <li className="flex items-start">
-                <span className="mr-3 font-bold text-primary">1.</span>
+                <span className="mr-3 font-bold text-foreground">1.</span>
                 <span>Browse available listings and select a ticket that interests you</span>
               </li>
               <li className="flex items-start">
-                <span className="mr-3 font-bold text-primary">2.</span>
+                <span className="mr-3 font-bold text-foreground">2.</span>
                 <span>Review the listing information, price, and delivery method</span>
               </li>
               <li className="flex items-start">
-                <span className="mr-3 font-bold text-primary">3.</span>
+                <span className="mr-3 font-bold text-foreground">3.</span>
                 <span>Contact the seller directly or view the full listing for more details</span>
               </li>
               <li className="flex items-start">
-                <span className="mr-3 font-bold text-primary">4.</span>
+                <span className="mr-3 font-bold text-foreground">4.</span>
                 <span>Arrange payment and ticket delivery with the verified seller</span>
               </li>
             </ol>
@@ -263,14 +263,14 @@ export default function BrowsePage() {
       <footer className="mt-16 border-t border-border bg-card/50 py-12">
         <div className="container mx-auto">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-foreground/70">
               © 2025 Fire Suite Exchange. All rights reserved.
             </div>
             <div className="flex flex-wrap justify-center gap-6 text-sm">
-              <Link href="/legal/terms" className="text-muted-foreground transition-colors hover:text-foreground">
+              <Link href="/legal/terms" className="text-foreground/70 transition-colors hover:text-foreground">
                 Terms of Service
               </Link>
-              <Link href="/legal/privacy" className="text-muted-foreground transition-colors hover:text-foreground">
+              <Link href="/legal/privacy" className="text-foreground/70 transition-colors hover:text-foreground">
                 Privacy Policy
               </Link>
             </div>
