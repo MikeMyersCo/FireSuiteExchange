@@ -17,9 +17,9 @@ enum UserRole {
 }
 
 enum SuiteArea {
-  NORTH_TERRACE
-  SOUTH_TERRACE
-  LOWER_FIRE
+  L    // Lower Fire Suite (1-90)
+  UNT  // Upper North Terrace (1-20)
+  UST  // Upper South Terrace (1-20)
 }
 
 enum ApplicationStatus {
@@ -73,11 +73,12 @@ model User {
 }
 
 model Suite {
-  id       String    @id @default(cuid())
-  area     SuiteArea
-  number   Int
-  capacity Int       @default(8)
-  isActive Boolean   @default(true) @map("is_active")
+  id          String    @id @default(cuid())
+  area        SuiteArea
+  number      Int
+  displayName String    @map("display_name") // e.g., "L23", "UNT5", "UST12"
+  capacity    Int       @default(8)
+  isActive    Boolean   @default(true) @map("is_active")
 
   // Relations
   applications SellerApplication[]
@@ -85,26 +86,30 @@ model Suite {
 
   @@unique([area, number])
   @@index([area])
+  @@index([displayName])
   @@map("suites")
 }
 
 model SellerApplication {
-  id          String            @id @default(cuid())
-  userId      String            @map("user_id")
-  suiteId     String            @map("suite_id")
-  status      ApplicationStatus @default(PENDING)
-  legalName   String            @map("legal_name")
-  message     String?
-  adminNote   String?           @map("admin_note")
-  attachments Json?             @default("[]") // Array of file URLs
-  inviteCode  String?           @map("invite_code")
-  createdAt   DateTime          @default(now()) @map("created_at")
-  decidedAt   DateTime?         @map("decided_at")
+  id            String            @id @default(cuid())
+  userId        String            @map("user_id")
+  suiteId       String            @map("suite_id")
+  status        ApplicationStatus @default(PENDING)
+  legalName     String            @map("legal_name")
+  message       String?
+  adminNote     String?           @map("admin_note")
+  attachments   Json?             @default("[]") // Array of file URLs (proof of ownership)
+  inviteCode    String?           @map("invite_code")
+  verifiedAt    DateTime?         @map("verified_at") // When admin approved
+  deniedReason  String?           @map("denied_reason")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  decidedAt     DateTime?         @map("decided_at")
 
   // Relations
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
   suite Suite @relation(fields: [suiteId], references: [id])
 
+  @@unique([userId, suiteId]) // User can only apply once per suite
   @@index([userId])
   @@index([suiteId])
   @@index([status])

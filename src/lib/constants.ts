@@ -4,9 +4,9 @@ export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000
 export const SUITE_CAPACITY = 8;
 
 export const SUITE_AREAS = {
-  NORTH_TERRACE: 'North Terrace',
-  SOUTH_TERRACE: 'South Terrace',
-  LOWER_FIRE: 'Lower Fire Suite',
+  L: 'Lower Fire Suite',
+  UNT: 'Upper North Terrace',
+  UST: 'Upper South Terrace',
 } as const;
 
 export const DELIVERY_METHODS = {
@@ -35,24 +35,44 @@ export const APPLICATION_STATUS_LABELS = {
 export const SUITE_DATA = {
   areas: [
     {
-      id: 'NORTH_TERRACE',
-      name: 'North Terrace',
+      id: 'L',
+      name: 'Lower Fire Suite',
+      prefix: 'L',
+      suites: Array.from({ length: 90 }, (_, i) => i + 1),
+      color: '#F59E0B', // amber-500
+    },
+    {
+      id: 'UNT',
+      name: 'Upper North Terrace',
+      prefix: 'UNT',
       suites: Array.from({ length: 20 }, (_, i) => i + 1),
       color: '#3B82F6', // blue-500
     },
     {
-      id: 'SOUTH_TERRACE',
-      name: 'South Terrace',
+      id: 'UST',
+      name: 'Upper South Terrace',
+      prefix: 'UST',
       suites: Array.from({ length: 20 }, (_, i) => i + 1),
       color: '#8B5CF6', // violet-500
     },
-    {
-      id: 'LOWER_FIRE',
-      name: 'Lower Fire Suite',
-      suites: Array.from({ length: 90 }, (_, i) => i + 1),
-      color: '#F59E0B', // amber-500
-    },
   ],
+};
+
+// Helper function to format suite display name
+export const formatSuiteName = (area: string, number: number): string => {
+  return `${area}${number}`;
+};
+
+// Helper function to get all possible suites
+export const getAllSuites = () => {
+  return SUITE_DATA.areas.flatMap(area =>
+    area.suites.map(num => ({
+      area: area.id,
+      number: num,
+      displayName: formatSuiteName(area.prefix, num),
+      areaName: area.name,
+    }))
+  );
 };
 
 export const MAX_FILE_SIZE = parseInt(process.env.MAX_FILE_SIZE_MB || '10') * 1024 * 1024; // bytes

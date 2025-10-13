@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -11,8 +11,11 @@ export default function SellPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [verifiedSuites, setVerifiedSuites] = useState<any[]>([]);
+  const [loadingSuites, setLoadingSuites] = useState(true);
 
   const [formData, setFormData] = useState({
+    suiteId: '',
     eventTitle: '',
     eventDate: '',
     eventTime: '',
@@ -26,6 +29,33 @@ export default function SellPage() {
     notes: '',
     seatNumbers: '',
   });
+
+  useEffect(() => {
+    if (status === 'authenticated' && session?.user) {
+      fetchVerifiedSuites();
+    }
+  }, [status, session]);
+
+  const fetchVerifiedSuites = async () => {
+    try {
+      const response = await fetch('/api/applications/my-applications');
+      if (response.ok) {
+        const data = await response.json();
+        const approved = data.applications.filter((app: any) => app.status === 'APPROVED');
+        setVerifiedSuites(approved);
+
+        // Auto-select first suite if only one verified
+        if (approved.length === 1) {
+          setFormData(prev => ({ ...prev, suiteId: approved[0].suiteId }));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch verified suites:', err);
+      setError('Failed to load your verified suites');
+    } finally {
+      setLoadingSuites(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -45,6 +75,11 @@ export default function SellPage() {
     setLoading(true);
 
     try {
+      // Validate suite selection
+      if (!formData.suiteId) {
+        throw new Error('Please select a suite');
+      }
+
       // Combine date and time into datetime
       const eventDatetime = new Date(`${formData.eventDate}T${formData.eventTime}`).toISOString();
 
@@ -54,6 +89,7 @@ export default function SellPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          suiteId: formData.suiteId,
           eventTitle: formData.eventTitle,
           eventDatetime,
           quantity: parseInt(formData.quantity),
@@ -88,13 +124,72 @@ export default function SellPage() {
     }
   };
 
-  if (status === 'loading') {
+  if (status === 'loading' || loadingSuites) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+          <p className="mt-4 text-foreground/70">Loading...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Redirect to verification if no verified suites
+  if (!loadingSuites && verifiedSuites.length === 0) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="sticky top-0 z-50 bg-accent">
+          <div className="container mx-auto flex h-16 items-center justify-between px-4">
+            <Link href="/" className="text-xl font-bold text-accent-foreground">
+              🔥 Fire Suite Exchange
+            </Link>
+          </div>
+        </header>
+
+        <main className="container mx-auto px-4 py-8">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-8 mb-6">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h1 className="text-heading-lg font-bold text-foreground mb-4">
+                Suite Verification Required
+              </h1>
+              <p className="text-foreground/70 mb-6">
+                To list tickets, you must first verify that you own a Fire Suite at Ford Amphitheater.
+              </p>
+              <Link
+                href="/verify-suite"
+                className="inline-flex items-center justify-center px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary-600 transition-colors shadow-md"
+              >
+                Verify Your Suite Ownership
+              </Link>
+            </div>
+
+            <div className="bg-card rounded-xl shadow-card p-6 border border-border text-left">
+              <h2 className="text-heading-sm font-bold text-foreground mb-3">
+                Why do we require verification?
+              </h2>
+              <ul className="space-y-2 text-sm text-foreground/70">
+                <li className="flex gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>Ensures all listings are from legitimate Fire Suite owners</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>Prevents fraudulent ticket sales</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>Builds trust in the marketplace</span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="text-primary">✓</span>
+                  <span>Protects both buyers and sellers</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -146,6 +241,35 @@ export default function SellPage() {
           )}
 
           <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8 space-y-6">
+            {/* Suite Selection */}
+            <div className="space-y-6">
+              <h2 className="text-xl font-bold text-gray-900 pb-2 border-b">Your Suite</h2>
+
+              <div>
+                <label htmlFor="suiteId" className="block text-sm font-medium text-gray-700 mb-2">
+                  Select Suite *
+                </label>
+                <select
+                  id="suiteId"
+                  name="suiteId"
+                  required
+                  value={formData.suiteId}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select a suite</option>
+                  {verifiedSuites.map((app) => (
+                    <option key={app.id} value={app.suiteId}>
+                      {app.suite.displayName} - {app.suite.area === 'L' ? 'Lower Fire Suite' : app.suite.area === 'UNT' ? 'Upper North Terrace' : 'Upper South Terrace'}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-gray-600">
+                  You can only list tickets for suites you own. {verifiedSuites.length > 1 ? `You have ${verifiedSuites.length} verified suites.` : ''}
+                </p>
+              </div>
+            </div>
+
             {/* Event Information */}
             <div className="space-y-6">
               <h2 className="text-xl font-bold text-gray-900 pb-2 border-b">Event Information</h2>

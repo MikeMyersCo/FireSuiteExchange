@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     const {
+      suiteId,
       eventTitle,
       eventDatetime,
       quantity,
@@ -39,17 +40,18 @@ export async function POST(request: NextRequest) {
     } = body;
 
     // Validation
-    if (!eventTitle || !eventDatetime || !quantity || !pricePerSeat || !deliveryMethod) {
+    if (!suiteId || !eventTitle || !eventDatetime || !quantity || !pricePerSeat || !deliveryMethod) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Get user's suite (assuming they have one approved application)
+    // Verify user owns this suite - check for approved application
     const approvedApplication = await db.sellerApplication.findFirst({
       where: {
         userId: session.user.id,
+        suiteId: suiteId,
         status: 'APPROVED',
       },
       include: {
@@ -59,8 +61,8 @@ export async function POST(request: NextRequest) {
 
     if (!approvedApplication) {
       return NextResponse.json(
-        { error: 'No approved suite application found' },
-        { status: 400 }
+        { error: 'You do not have permission to list tickets for this suite. Please verify your ownership first.' },
+        { status: 403 }
       );
     }
 
@@ -74,7 +76,7 @@ export async function POST(request: NextRequest) {
     const listing = await db.listing.create({
       data: {
         sellerId: session.user.id,
-        suiteId: approvedApplication.suiteId,
+        suiteId: suiteId,
         eventTitle,
         eventDatetime: new Date(eventDatetime),
         quantity: parseInt(quantity),
