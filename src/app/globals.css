@@ -4,46 +4,46 @@
 
 @layer base {
   :root {
-    /* Wispr Flow dark theme - deep teal and rich darks */
-    /* Background: deep navy/teal (#0b0e16) */
-    --background: 220 25% 6%;
-    --foreground: 210 20% 92%;
+    /* Wispr Flow LIGHT theme - actual colors from wisprflow.ai */
+    /* Background: pure white */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
 
-    /* Card/Panel: elevated surface (#141827) */
-    --card: 220 30% 10%;
-    --card-foreground: 210 20% 92%;
+    /* Card/Panel: white with subtle shadows */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 10%;
 
     /* Popover colors */
-    --popover: 220 30% 12%;
-    --popover-foreground: 210 20% 92%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 10%;
 
-    /* Primary blue (#4c82ff - vibrant blue) */
-    --primary: 222 100% 65%;
+    /* Primary blue (#4D65FF - bright blue from Wispr Flow) */
+    --primary: 231 100% 65%;
     --primary-foreground: 0 0% 100%;
-    --primary-50: 222 100% 97%;
-    --primary-100: 222 100% 90%;
-    --primary-600: 222 100% 58%;
+    --primary-50: 231 100% 97%;
+    --primary-100: 231 100% 90%;
+    --primary-600: 231 100% 58%;
 
     /* Secondary/Surface colors */
-    --secondary: 220 25% 15%;
-    --secondary-foreground: 210 20% 92%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 10%;
 
-    /* Muted text (#a5aabc - cool gray) */
-    --muted: 220 20% 18%;
-    --muted-foreground: 220 10% 68%;
+    /* Muted text (#8D8D83 - soft gray from Wispr Flow) */
+    --muted: 0 0% 96%;
+    --muted-foreground: 40 4% 55%;
 
-    /* Accent teal (#21c1ad - mint/teal) */
-    --accent: 172 70% 45%;
+    /* Accent teal (#034F46 - teal-green from Wispr Flow) */
+    --accent: 174 95% 16%;
     --accent-foreground: 0 0% 100%;
 
     /* Destructive */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders - subtle (#262c3f) */
-    --border: 220 25% 20%;
-    --input: 220 25% 20%;
-    --ring: 222 100% 65%;
+    /* Borders - subtle gray */
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 231 100% 65%;
 
     /* Border radius */
     --radius: 0.75rem;

@@ -67,7 +67,7 @@ export default function BrowsePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header - Minimal sticky nav with slide-down mobile menu */}
-      <header className="sticky top-0 z-50 border-b border-border/40 bg-card/95 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur-md">
         <div className="container mx-auto flex h-14 items-center justify-between">
           <Link href="/" className="text-xl font-bold text-foreground transition-colors hover:text-primary">
             🔥 Fire Suite Exchange

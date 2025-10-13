@@ -30,7 +30,7 @@ export default function HomePage() {
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header - Minimal sticky nav with slide-down mobile menu */}
-      <header className="sticky top-0 z-50 border-b border-border/40 bg-card/95 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur-md">
         <div className="container mx-auto flex h-14 items-center justify-between">
           <Link href="/" className="text-xl font-bold text-foreground transition-colors hover:text-primary">
             🔥 Fire Suite Exchange
@@ -110,13 +110,13 @@ export default function HomePage() {
         </nav>
       </div>
 
-      {/* Hero Section - Large, punchy hero with dark theme */}
+      {/* Hero Section - Large, punchy hero with light theme */}
       <main className="flex-1">
-        <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 via-background to-background py-20 sm:py-24 md:py-32 lg:py-40">
+        <section className="relative overflow-hidden bg-gradient-to-b from-primary-50 via-background to-background py-20 sm:py-24 md:py-32 lg:py-40">
           <div className="container mx-auto text-center">
             <h1 className="mx-auto mb-6 max-w-4xl text-4xl font-bold leading-[1.1] tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
               Ford Amphitheater{' '}
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              <span className="text-primary">
                 Fire Suite Exchange
               </span>
             </h1>
@@ -141,7 +141,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/apply-seller"
-                className="inline-flex h-12 items-center justify-center rounded-xl border-2 border-border bg-card px-8 text-base font-semibold text-foreground transition-all hover:border-primary hover:bg-card/80"
+                className="inline-flex h-12 items-center justify-center rounded-xl border-2 border-primary bg-background px-8 text-base font-semibold text-primary transition-all hover:bg-primary-50"
               >
                 List Your Tickets
               </Link>
@@ -208,7 +208,7 @@ export default function HomePage() {
         </section>
 
         {/* How It Works - Feature rows with consistent rhythm */}
-        <section className="bg-card/30 py-16 md:py-24">
+        <section className="bg-secondary/30 py-16 md:py-24">
           <div className="container mx-auto">
             <h2 className="mb-16 text-center text-heading-lg font-bold text-foreground">
               How It Works
@@ -249,10 +249,10 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* CTA Section - Prominent repeated CTA with gradient */}
+        {/* CTA Section - Prominent repeated CTA */}
         <section className="py-16 md:py-24">
           <div className="container mx-auto">
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-primary-600 to-accent px-8 py-16 text-center shadow-card-elevated shadow-primary/20 md:px-12 md:py-20">
+            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-primary-600 px-8 py-16 text-center shadow-card-elevated md:px-12 md:py-20">
               <div className="relative z-10">
                 <h2 className="mb-4 text-3xl font-bold text-white md:text-4xl lg:text-5xl">Own a Fire Suite?</h2>
                 <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-white/90">
@@ -261,21 +261,21 @@ export default function HomePage() {
                 </p>
                 <Link
                   href="/apply-seller"
-                  className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-8 text-base font-semibold text-primary shadow-lg transition-all hover:scale-[1.02] hover:bg-white/95 hover:shadow-xl active:scale-[0.98]"
+                  className="inline-flex h-12 items-center justify-center rounded-xl bg-white px-8 text-base font-semibold text-primary shadow-lg transition-all hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
                 >
                   Apply to Become a Seller
                 </Link>
               </div>
               {/* Subtle decorative elements */}
-              <div className="absolute -right-10 -top-10 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-              <div className="absolute -bottom-10 -left-10 h-64 w-64 rounded-full bg-accent/20 blur-3xl" />
+              <div className="absolute -right-10 -top-10 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
+              <div className="absolute -bottom-10 -left-10 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
             </div>
           </div>
         </section>
       </main>
 
       {/* Footer - Clean minimal footer */}
-      <footer className="border-t border-border bg-card/50 py-12">
+      <footer className="border-t border-border bg-secondary/30 py-12">
         <div className="container mx-auto">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="text-sm text-muted-foreground">
