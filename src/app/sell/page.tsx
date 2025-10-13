@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { EVENT_NAMES, EVENTS_2026 } from '@/lib/events-2026';
 
 export default function SellPage() {
   const { data: session, status } = useSession();
@@ -19,15 +20,16 @@ export default function SellPage() {
     eventTitle: '',
     eventDate: '',
     eventTime: '',
-    quantity: '',
+    quantity: '8',
     pricePerSeat: '',
     deliveryMethod: 'MOBILE_TRANSFER',
     contactEmail: session?.user?.email || '',
-    contactPhone: '',
+    contactPhone: session?.user?.phone || '',
     contactLink: '',
+    contactMessenger: '',
     allowMessages: false,
     notes: '',
-    seatNumbers: '',
+    seatNumbers: '1-8',
   });
 
   useEffect(() => {
@@ -41,13 +43,18 @@ export default function SellPage() {
       const response = await fetch('/api/applications/my-applications');
       if (response.ok) {
         const data = await response.json();
+        console.log('All applications:', data.applications);
         const approved = data.applications.filter((app: any) => app.status === 'APPROVED');
+        console.log('Approved applications:', approved);
         setVerifiedSuites(approved);
 
         // Auto-select first suite if only one verified
         if (approved.length === 1) {
           setFormData(prev => ({ ...prev, suiteId: approved[0].suiteId }));
         }
+      } else {
+        console.error('Failed to fetch applications:', response.status);
+        setError('Failed to load your verified suites');
       }
     } catch (err) {
       console.error('Failed to fetch verified suites:', err);
@@ -65,6 +72,23 @@ export default function SellPage() {
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
+
+      // Auto-fill event date and time when an event is selected
+      if (name === 'eventTitle') {
+        const matchedEvent = EVENTS_2026.find(event => event.artist === value);
+        if (matchedEvent) {
+          const eventDate = new Date(matchedEvent.date);
+          const dateStr = eventDate.toISOString().split('T')[0]; // YYYY-MM-DD
+          const timeStr = eventDate.toISOString().split('T')[1].substring(0, 5); // HH:MM
+
+          setFormData(prev => ({
+            ...prev,
+            [name]: value,
+            eventDate: dateStr,
+            eventTime: timeStr,
+          }));
+        }
+      }
     }
   };
 
@@ -98,6 +122,7 @@ export default function SellPage() {
           contactEmail: formData.contactEmail,
           contactPhone: formData.contactPhone || null,
           contactLink: formData.contactLink || null,
+          contactMessenger: formData.contactMessenger || null,
           allowMessages: formData.allowMessages,
           notes: formData.notes || null,
           seatNumbers: formData.seatNumbers || null,
@@ -110,11 +135,11 @@ export default function SellPage() {
         throw new Error(data.error || 'Failed to create listing');
       }
 
-      setSuccess('Listing created successfully!');
+      setSuccess('Listing created successfully! Redirecting to browse page...');
 
-      // Redirect to the new listing after a short delay
+      // Redirect to browse page after a short delay
       setTimeout(() => {
-        router.push(`/listing/${data.listing.slug}`);
+        router.push('/browse');
       }, 1500);
 
     } catch (err: any) {
@@ -135,8 +160,8 @@ export default function SellPage() {
     );
   }
 
-  // Redirect to verification if no verified suites
-  if (!loadingSuites && verifiedSuites.length === 0) {
+  // Redirect to verification if no verified suites (unless admin)
+  if (!loadingSuites && verifiedSuites.length === 0 && session?.user?.role !== 'ADMIN') {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-50 bg-accent">
@@ -193,6 +218,9 @@ export default function SellPage() {
       </div>
     );
   }
+
+  // If admin with no verified suites, show a warning but let them proceed
+  const isAdminBypass = session?.user?.role === 'ADMIN' && verifiedSuites.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -285,9 +313,18 @@ export default function SellPage() {
                   required
                   value={formData.eventTitle}
                   onChange={handleChange}
+                  list="eventSuggestions"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="e.g., Firebirds vs Gulls"
+                  placeholder="e.g., Train, Beck, Chicago..."
                 />
+                <datalist id="eventSuggestions">
+                  {EVENT_NAMES.map((eventName) => (
+                    <option key={eventName} value={eventName} />
+                  ))}
+                </datalist>
+                <p className="mt-1 text-xs text-gray-600">
+                  Start typing to see 2026 concert suggestions
+                </p>
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
@@ -449,6 +486,24 @@ export default function SellPage() {
                 />
               </div>
 
+              <div>
+                <label htmlFor="contactMessenger" className="block text-sm font-medium text-gray-700 mb-2">
+                  Facebook Messenger Username (optional)
+                </label>
+                <input
+                  id="contactMessenger"
+                  name="contactMessenger"
+                  type="text"
+                  value={formData.contactMessenger}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="your.username"
+                />
+                <p className="mt-1 text-xs text-gray-600">
+                  Enter your Facebook username (e.g., "john.smith" from facebook.com/john.smith)
+                </p>
+              </div>
+
               <div className="flex items-center">
                 <input
                   id="allowMessages"
@@ -490,13 +545,23 @@ export default function SellPage() {
                 {loading ? 'Creating Listing...' : 'Create Listing'}
               </button>
               <Link
-                href="/sell/my-listings"
+                href="/"
                 className="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors text-center"
               >
                 Cancel
               </Link>
             </div>
           </form>
+
+          {/* Small, less prominent link to verify additional suites */}
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-600">
+              Own multiple suites?{' '}
+              <Link href="/verify-suite" className="text-blue-600 hover:underline font-medium">
+                Verify another suite
+              </Link>
+            </p>
+          </div>
         </div>
       </main>
 

@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { suiteArea, suiteNumber, legalName, message } = body;
+    const { suiteArea, suiteNumber, legalName, message, attachments } = body;
 
     // Validation
     if (!suiteArea || !suiteNumber || !legalName) {
@@ -80,6 +80,7 @@ export async function POST(request: NextRequest) {
         suiteId: suite.id,
         legalName,
         message: message || null,
+        attachments: attachments || [],
         status: 'PENDING',
       },
       include: {
@@ -141,10 +142,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Only admins can view all applications
-    if (session.user.role !== 'ADMIN') {
+    // Only admins and approvers can view all applications
+    if (session.user.role !== 'ADMIN' && session.user.role !== 'APPROVER') {
       return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
+        { error: 'Forbidden - Admin or Approver access required' },
         { status: 403 }
       );
     }

@@ -13,6 +13,7 @@ datasource db {
 enum UserRole {
   GUEST
   SELLER
+  APPROVER
   ADMIN
 }
 
@@ -117,30 +118,31 @@ model SellerApplication {
 }
 
 model Listing {
-  id              String         @id @default(cuid())
-  sellerId        String         @map("seller_id")
-  suiteId         String         @map("suite_id")
-  eventTitle      String         @map("event_title")
-  eventDatetime   DateTime       @map("event_datetime")
-  quantity        Int
-  pricePerSeat    Decimal        @map("price_per_seat") @db.Decimal(10, 2)
-  deliveryMethod  DeliveryMethod @map("delivery_method")
-  contactEmail    String?        @map("contact_email")
-  contactPhone    String?        @map("contact_phone")
-  contactLink     String?        @map("contact_link")
-  allowMessages   Boolean        @default(false) @map("allow_messages")
-  notes           String?
-  status          ListingStatus  @default(ACTIVE)
-  seatNumbers     String?        @map("seat_numbers") // e.g., "1,2,3,4"
-  slug            String         @unique
-  isFeatured      Boolean        @default(false) @map("is_featured")
-  viewCount       Int            @default(0) @map("view_count")
-  createdAt       DateTime       @default(now()) @map("created_at")
-  updatedAt       DateTime       @updatedAt @map("updated_at")
-  soldAt          DateTime?      @map("sold_at")
-  soldPriceTotal  Decimal?       @map("sold_price_total") @db.Decimal(10, 2)
-  soldBuyerName   String?        @map("sold_buyer_name")
-  soldBuyerEmail  String?        @map("sold_buyer_email")
+  id                 String         @id @default(cuid())
+  sellerId           String         @map("seller_id")
+  suiteId            String         @map("suite_id")
+  eventTitle         String         @map("event_title")
+  eventDatetime      DateTime       @map("event_datetime")
+  quantity           Int
+  pricePerSeat       Decimal        @map("price_per_seat") @db.Decimal(10, 2)
+  deliveryMethod     DeliveryMethod @map("delivery_method")
+  contactEmail       String?        @map("contact_email")
+  contactPhone       String?        @map("contact_phone")
+  contactLink        String?        @map("contact_link")
+  contactMessenger   String?        @map("contact_messenger") // Facebook Messenger username
+  allowMessages      Boolean        @default(false) @map("allow_messages")
+  notes              String?
+  status             ListingStatus  @default(ACTIVE)
+  seatNumbers        String?        @map("seat_numbers") // e.g., "1,2,3,4"
+  slug               String         @unique
+  isFeatured         Boolean        @default(false) @map("is_featured")
+  viewCount          Int            @default(0) @map("view_count")
+  createdAt          DateTime       @default(now()) @map("created_at")
+  updatedAt          DateTime       @updatedAt @map("updated_at")
+  soldAt             DateTime?      @map("sold_at")
+  soldPriceTotal     Decimal?       @map("sold_price_total") @db.Decimal(10, 2)
+  soldBuyerName      String?        @map("sold_buyer_name")
+  soldBuyerEmail     String?        @map("sold_buyer_email")
 
   // Relations
   seller User            @relation(fields: [sellerId], references: [id], onDelete: Cascade)

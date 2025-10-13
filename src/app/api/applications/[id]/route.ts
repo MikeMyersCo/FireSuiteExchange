@@ -17,10 +17,10 @@ export async function PATCH(
       );
     }
 
-    // Only admins can approve/deny applications
-    if (session.user.role !== 'ADMIN') {
+    // Only admins and approvers can approve/deny applications
+    if (session.user.role !== 'ADMIN' && session.user.role !== 'APPROVER') {
       return NextResponse.json(
-        { error: 'Forbidden - Admin access required' },
+        { error: 'Forbidden - Admin or Approver access required' },
         { status: 403 }
       );
     }
@@ -131,8 +131,8 @@ export async function GET(
       );
     }
 
-    // Only allow user to view their own application or admins to view any
-    if (application.userId !== session.user.id && session.user.role !== 'ADMIN') {
+    // Only allow user to view their own application or admins/approvers to view any
+    if (application.userId !== session.user.id && session.user.role !== 'ADMIN' && session.user.role !== 'APPROVER') {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }

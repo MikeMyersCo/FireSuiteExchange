@@ -21,6 +21,7 @@ export default function VerifySuitePage() {
     legalName: '',
     message: '',
   });
+  const [files, setFiles] = useState<File[]>([]);
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
@@ -46,6 +47,17 @@ export default function VerifySuitePage() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      setFiles(prev => [...prev, ...newFiles].slice(0, 5)); // Max 5 files
+    }
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -57,6 +69,28 @@ export default function VerifySuitePage() {
         throw new Error('Please select a suite');
       }
 
+      // Upload files first if any
+      let attachmentUrls: string[] = [];
+      if (files.length > 0) {
+        const uploadFormData = new FormData();
+        files.forEach(file => {
+          uploadFormData.append('files', file);
+        });
+
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: uploadFormData,
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error('Failed to upload files');
+        }
+
+        const uploadData = await uploadResponse.json();
+        attachmentUrls = uploadData.urls || [];
+      }
+
+      // Submit application with attachment URLs
       const response = await fetch('/api/applications', {
         method: 'POST',
         headers: {
@@ -67,6 +101,7 @@ export default function VerifySuitePage() {
           suiteNumber: parseInt(formData.suiteNumber),
           legalName: formData.legalName,
           message: formData.message || null,
+          attachments: attachmentUrls,
         }),
       });
 
@@ -85,6 +120,7 @@ export default function VerifySuitePage() {
         legalName: '',
         message: '',
       });
+      setFiles([]);
 
       // Refresh applications
       setTimeout(() => {
@@ -312,6 +348,69 @@ export default function VerifySuitePage() {
                 className="w-full px-4 py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
                 placeholder="Any additional information about your suite ownership..."
               />
+            </div>
+
+            {/* File Upload */}
+            <div>
+              <label htmlFor="files" className="block text-sm font-medium text-foreground mb-2">
+                Proof of Ownership Documents
+              </label>
+              <div className="border-2 border-dashed border-border rounded-lg p-6 bg-background/50 hover:bg-background transition-colors">
+                <input
+                  id="files"
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="files"
+                  className="cursor-pointer flex flex-col items-center justify-center text-center"
+                >
+                  <svg className="h-12 w-12 text-foreground/40 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <p className="text-sm font-medium text-foreground mb-1">
+                    Click to upload or drag and drop
+                  </p>
+                  <p className="text-xs text-foreground/60">
+                    PDF, JPG, PNG, DOC (Max 5 files, 10MB each)
+                  </p>
+                </label>
+              </div>
+
+              {/* File List */}
+              {files.length > 0 && (
+                <div className="mt-4 space-y-2">
+                  {files.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg px-4 py-3">
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <svg className="h-5 w-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-foreground truncate">{file.name}</p>
+                          <p className="text-xs text-foreground/60">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        className="ml-4 p-1 hover:bg-red-100 rounded text-red-600 transition-colors"
+                      >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <p className="mt-2 text-xs text-foreground/60">
+                Upload documents that prove your suite ownership (e.g., purchase agreement, season ticket holder card, deed, etc.)
+              </p>
             </div>
 
             {/* Submit Button */}

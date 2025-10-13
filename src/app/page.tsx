@@ -2,9 +2,12 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 
 export default function HomePage() {
+  const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [suiteAreaCounts, setSuiteAreaCounts] = useState({ L: 0, UNT: 0, UST: 0 });
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -27,6 +30,28 @@ export default function HomePage() {
     };
   }, [mobileMenuOpen]);
 
+  // Fetch suite area counts
+  useEffect(() => {
+    async function fetchCounts() {
+      try {
+        const response = await fetch('/api/suites/listings');
+        const result = await response.json();
+        if (result.success) {
+          const listingsArray = Object.values(result.data.contacts || {}) as any[];
+          const counts = {
+            L: listingsArray.filter(l => l.suiteArea === 'L').length,
+            UNT: listingsArray.filter(l => l.suiteArea === 'UNT').length,
+            UST: listingsArray.filter(l => l.suiteArea === 'UST').length,
+          };
+          setSuiteAreaCounts(counts);
+        }
+      } catch (error) {
+        console.error('Error fetching suite area counts:', error);
+      }
+    }
+    fetchCounts();
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header - Dark teal bar like Wispr Flow */}
@@ -41,15 +66,29 @@ export default function HomePage() {
             <Link href="/browse" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
               Browse Listings
             </Link>
-            <Link href="/apply-seller" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
+            <Link href="/verify-suite" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
               Become a Seller
             </Link>
-            <Link
-              href="/login"
-              className="rounded-xl border-2 border-accent-foreground bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-600"
-            >
-              Login
-            </Link>
+            {session?.user?.role === 'APPROVER' || session?.user?.role === 'ADMIN' ? (
+              <Link href="/approver/applications" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
+                Review Applications
+              </Link>
+            ) : null}
+            {session ? (
+              <button
+                onClick={() => signOut({ callbackUrl: '/' })}
+                className="rounded-xl border-2 border-accent-foreground bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-600"
+              >
+                Logout
+              </button>
+            ) : (
+              <Link
+                href="/login"
+                className="rounded-xl border-2 border-accent-foreground bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-600"
+              >
+                Login
+              </Link>
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
@@ -94,19 +133,40 @@ export default function HomePage() {
             Browse Listings
           </Link>
           <Link
-            href="/apply-seller"
+            href="/verify-suite"
             className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             onClick={() => setMobileMenuOpen(false)}
           >
             Become a Seller
           </Link>
-          <Link
-            href="/login"
-            className="mt-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-600"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Login
-          </Link>
+          {session?.user?.role === 'APPROVER' || session?.user?.role === 'ADMIN' ? (
+            <Link
+              href="/approver/applications"
+              className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Review Applications
+            </Link>
+          ) : null}
+          {session ? (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                signOut({ callbackUrl: '/' });
+              }}
+              className="mt-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-600"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="mt-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-600"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Login
+            </Link>
+          )}
         </nav>
       </div>
 
@@ -137,7 +197,7 @@ export default function HomePage() {
                 </svg>
               </Link>
               <Link
-                href="/apply-seller"
+                href="/sell"
                 className="inline-flex h-12 items-center justify-center rounded-xl border-2 border-foreground bg-background px-6 text-base font-semibold text-foreground transition-all hover:bg-secondary"
               >
                 List Your Tickets
@@ -153,13 +213,21 @@ export default function HomePage() {
               Browse by Suite Area
             </h2>
             <div className="grid gap-6 md:grid-cols-3">
-              <Link href="/browse?area=NORTH_TERRACE" className="group">
+              <Link href="/browse?area=UNT" className="group">
                 <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-card-subtle transition-all hover:shadow-card-hover">
-                  <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 text-3xl">
-                    🔵
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-yellow-100 text-3xl">
+                      🎫
+                    </div>
+                    <div className="rounded-full bg-primary px-4 py-2 text-xl font-bold text-primary-foreground">
+                      {suiteAreaCounts.UNT}
+                    </div>
                   </div>
                   <h3 className="mb-3 text-heading-sm font-semibold text-foreground">North Terrace</h3>
                   <p className="text-sm text-foreground/70">Suites 1-20 • 8 seats each</p>
+                  <p className="mt-2 text-sm font-semibold text-primary">
+                    {suiteAreaCounts.UNT} {suiteAreaCounts.UNT === 1 ? 'listing' : 'listings'} available
+                  </p>
                   <div className="mt-4 flex items-center text-sm font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
                     View listings
                     <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,13 +237,21 @@ export default function HomePage() {
                 </div>
               </Link>
 
-              <Link href="/browse?area=SOUTH_TERRACE" className="group">
+              <Link href="/browse?area=UST" className="group">
                 <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-card-subtle transition-all hover:shadow-card-hover">
-                  <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-xl bg-purple-500/10 text-3xl">
-                    🟣
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-yellow-100 text-3xl">
+                      🎫
+                    </div>
+                    <div className="rounded-full bg-primary px-4 py-2 text-xl font-bold text-primary-foreground">
+                      {suiteAreaCounts.UST}
+                    </div>
                   </div>
                   <h3 className="mb-3 text-heading-sm font-semibold text-foreground">South Terrace</h3>
                   <p className="text-sm text-foreground/70">Suites 1-20 • 8 seats each</p>
+                  <p className="mt-2 text-sm font-semibold text-primary">
+                    {suiteAreaCounts.UST} {suiteAreaCounts.UST === 1 ? 'listing' : 'listings'} available
+                  </p>
                   <div className="mt-4 flex items-center text-sm font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
                     View listings
                     <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -185,13 +261,21 @@ export default function HomePage() {
                 </div>
               </Link>
 
-              <Link href="/browse?area=LOWER_FIRE" className="group">
+              <Link href="/browse?area=L" className="group">
                 <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-card-subtle transition-all hover:shadow-card-hover">
-                  <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-xl bg-amber-500/10 text-3xl">
-                    🟠
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-green-100 text-3xl">
+                      🎫
+                    </div>
+                    <div className="rounded-full bg-primary px-4 py-2 text-xl font-bold text-primary-foreground">
+                      {suiteAreaCounts.L}
+                    </div>
                   </div>
-                  <h3 className="mb-3 text-heading-sm font-semibold text-foreground">Lower Fire Suites</h3>
+                  <h3 className="mb-3 text-heading-sm font-semibold text-foreground">Lower Bowl</h3>
                   <p className="text-sm text-foreground/70">Suites 1-90 • 8 seats each</p>
+                  <p className="mt-2 text-sm font-semibold text-primary">
+                    {suiteAreaCounts.L} {suiteAreaCounts.L === 1 ? 'listing' : 'listings'} available
+                  </p>
                   <div className="mt-4 flex items-center text-sm font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
                     View listings
                     <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -257,7 +341,7 @@ export default function HomePage() {
                   thousands of fans.
                 </p>
                 <Link
-                  href="/apply-seller"
+                  href="/verify-suite"
                   className="inline-flex h-12 items-center justify-center rounded-xl border-2 border-foreground bg-background px-8 text-base font-semibold text-foreground transition-all hover:bg-secondary active:scale-[0.98]"
                 >
                   Apply to Become a Seller

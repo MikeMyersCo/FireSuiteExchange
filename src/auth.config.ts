@@ -14,10 +14,17 @@ export const authConfig = {
       const isLoggedIn = !!auth?.user;
       const isOnDashboard = nextUrl.pathname.startsWith('/sell');
       const isOnAdmin = nextUrl.pathname.startsWith('/admin');
+      const isOnApprover = nextUrl.pathname.startsWith('/approver');
 
       if (isOnAdmin) {
         if (!isLoggedIn) return false;
         if (auth.user.role !== 'ADMIN') return false;
+        return true;
+      }
+
+      if (isOnApprover) {
+        if (!isLoggedIn) return false;
+        if (auth.user.role !== 'APPROVER' && auth.user.role !== 'ADMIN') return false;
         return true;
       }
 
@@ -49,7 +56,7 @@ export const authConfig = {
     session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string;
-        session.user.role = token.role as 'GUEST' | 'SELLER' | 'ADMIN';
+        session.user.role = token.role as 'GUEST' | 'SELLER' | 'APPROVER' | 'ADMIN';
         session.user.name = token.name as string;
         session.user.email = token.email as string;
       }

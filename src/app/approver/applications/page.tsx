@@ -5,7 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function AdminApplicationsPage() {
+export default function ApproverApplicationsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -17,7 +17,7 @@ export default function AdminApplicationsPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      if (session?.user?.role !== 'ADMIN') {
+      if (session?.user?.role !== 'APPROVER' && session?.user?.role !== 'ADMIN') {
         router.push('/');
       } else {
         fetchApplications();
@@ -60,7 +60,7 @@ export default function AdminApplicationsPage() {
         },
         body: JSON.stringify({
           status: 'APPROVED',
-          adminNote: 'Approved by admin',
+          adminNote: 'Approved by approver',
         }),
       });
 
@@ -94,7 +94,7 @@ export default function AdminApplicationsPage() {
         body: JSON.stringify({
           status: 'DENIED',
           deniedReason: reason || 'No reason provided',
-          adminNote: 'Denied by admin',
+          adminNote: 'Denied by approver',
         }),
       });
 
@@ -122,7 +122,7 @@ export default function AdminApplicationsPage() {
     );
   }
 
-  if (session?.user?.role !== 'ADMIN') {
+  if (session?.user?.role !== 'APPROVER' && session?.user?.role !== 'ADMIN') {
     return null;
   }
 
@@ -132,10 +132,10 @@ export default function AdminApplicationsPage() {
       <header className="sticky top-0 z-50 bg-accent">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="text-xl font-bold text-accent-foreground">
-            🔥 Fire Suite Exchange - Admin
+            🔥 Fire Suite Exchange - Approver
           </Link>
           <nav className="hidden md:flex gap-6">
-            <Link href="/admin/applications" className="text-sm font-medium text-accent-foreground">
+            <Link href="/approver/applications" className="text-sm font-medium text-accent-foreground">
               Applications
             </Link>
             <Link href="/" className="text-sm font-medium text-accent-foreground/80 hover:text-accent-foreground">

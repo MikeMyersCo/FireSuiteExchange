@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Transform listings into map format
+    // Transform listings - use listing ID as key to preserve all listings
     const suiteContacts: Record<string, any> = {};
     const highlightedSuites: string[] = [];
 
@@ -62,11 +62,12 @@ export async function GET(request: NextRequest) {
       const mapArea = mapSuiteAreaToMapArea(listing.suite.area);
       const suiteKey = `${mapArea}:${listing.suite.number}`;
 
-      // Store contact information
-      suiteContacts[suiteKey] = {
+      // Store contact information using listing ID as key (not suite key)
+      suiteContacts[listing.id] = {
         contactEmail: listing.contactEmail || listing.seller.email,
         contactPhone: listing.contactPhone || listing.seller.phone,
         contactLink: listing.contactLink,
+        contactMessenger: listing.contactMessenger,
         notes: listing.notes || `${listing.quantity} tickets available • $${listing.pricePerSeat} per seat`,
         listingId: listing.id,
         eventTitle: listing.eventTitle,
@@ -75,6 +76,9 @@ export async function GET(request: NextRequest) {
         pricePerSeat: listing.pricePerSeat.toString(),
         deliveryMethod: listing.deliveryMethod,
         slug: listing.slug,
+        suiteArea: listing.suite.area,
+        suiteNumber: listing.suite.number,
+        suiteDisplayName: listing.suite.displayName,
       };
 
       // Add to highlighted list
