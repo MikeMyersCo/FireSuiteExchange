@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import EventsCalendar from '@/components/EventsCalendar';
-
-export const dynamic = 'force-dynamic';
 
 interface ListingData {
   listingId: string;
@@ -39,7 +37,7 @@ function formatSuiteArea(area: string): string {
   }
 }
 
-export default function BrowsePage() {
+function BrowseContent() {
   const searchParams = useSearchParams();
   const [listings, setListings] = useState<ListingData[]>([]);
   const [allListings, setAllListings] = useState<ListingData[]>([]);
@@ -454,5 +452,20 @@ export default function BrowsePage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function BrowsePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+          <p className="mt-4 text-foreground/70">Loading...</p>
+        </div>
+      </div>
+    }>
+      <BrowseContent />
+    </Suspense>
   );
 }
