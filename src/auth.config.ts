@@ -24,7 +24,8 @@ export const authConfig = {
 
       if (isOnApprover) {
         if (!isLoggedIn) return false;
-        if (auth.user.role !== 'APPROVER' && auth.user.role !== 'ADMIN') return false;
+        const userRole = auth.user.role as string;
+        if (userRole !== 'APPROVER' && userRole !== 'ADMIN') return false;
         return true;
       }
 

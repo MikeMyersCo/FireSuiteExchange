@@ -5,6 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import EventsCalendar from '@/components/EventsCalendar';
 
+export const dynamic = 'force-dynamic';
+
 interface ListingData {
   listingId: string;
   eventTitle: string;
@@ -48,10 +50,14 @@ export default function BrowsePage() {
 
   useEffect(() => {
     fetchListings();
-    // Set initial filter from URL
+    // Set initial filters from URL
     const areaParam = searchParams.get('area');
+    const eventParam = searchParams.get('event');
     if (areaParam) {
       setSelectedSuiteArea(areaParam);
+    }
+    if (eventParam) {
+      setSelectedEvent(eventParam);
     }
   }, []);
 
@@ -127,6 +133,9 @@ export default function BrowsePage() {
 
           {/* Desktop Nav */}
           <nav className="hidden items-center gap-6 md:flex">
+            <Link href="/" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
+              Home
+            </Link>
             <Link href="/browse" className="text-sm font-medium text-accent-foreground">
               Browse Listings
             </Link>
@@ -176,6 +185,13 @@ export default function BrowsePage() {
       >
         <nav className="container mx-auto flex flex-col gap-1 py-4">
           <Link
+            href="/"
+            className="rounded-lg px-4 py-3 text-sm font-medium text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            Home
+          </Link>
+          <Link
             href="/browse"
             className="rounded-lg px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
             onClick={() => setMobileMenuOpen(false)}
@@ -201,7 +217,7 @@ export default function BrowsePage() {
 
       {/* Main Content */}
       <main className="container mx-auto py-12 md:py-16">
-        <div className="mb-10">
+        <div className="mb-10 text-center">
           <h1 className="mb-3 text-heading-lg font-bold text-foreground">
             Browse Fire Suite Tickets
           </h1>
@@ -214,14 +230,14 @@ export default function BrowsePage() {
           </p>
         </div>
 
-        {/* Two column layout: Calendar on left (1/4), Listings on right (3/4) */}
+        {/* Two column layout: Filters on left (1/4), Listings on right (3/4) */}
         <div className="flex flex-col gap-4 lg:flex-row">
-          {/* Left sidebar - Events Calendar and Filters */}
+          {/* Left sidebar - Horizontal layout with Suite Filter and Events Calendar */}
           <div className="lg:w-1/4">
-            <div className="lg:sticky lg:top-20 space-y-4">
-              {/* Suite Area Filter */}
-              <div className="rounded-2xl border border-border bg-card p-4">
-                <h3 className="mb-3 text-sm font-semibold text-foreground">Filter by Suite Area</h3>
+            <div className="lg:sticky lg:top-20 flex flex-row gap-4 lg:flex-col">
+              {/* Suite Area Filter - Takes less vertical space */}
+              <div className="flex-1 lg:flex-none rounded-2xl border border-border bg-card p-4">
+                <h3 className="mb-3 text-lg font-bold text-foreground text-center whitespace-nowrap">Filter by Suite Area</h3>
                 <div className="space-y-2">
                   <button
                     onClick={() => setSelectedSuiteArea(selectedSuiteArea === 'L' ? null : 'L')}
@@ -279,7 +295,9 @@ export default function BrowsePage() {
                 </div>
               </div>
 
-              <EventsCalendar onEventSelect={setSelectedEvent} selectedEvent={selectedEvent} />
+              <div className="flex-1">
+                <EventsCalendar onEventSelect={setSelectedEvent} selectedEvent={selectedEvent} />
+              </div>
             </div>
           </div>
 
@@ -305,7 +323,7 @@ export default function BrowsePage() {
                   </p>
                 </div>
                 <div className="flex flex-1 flex-col p-4">
-                  <h3 className="mb-1.5 line-clamp-2 min-h-[2.5rem] text-base font-semibold text-foreground">
+                  <h3 className="mb-1.5 line-clamp-2 min-h-[2.5rem] text-base font-semibold text-foreground text-center">
                     {listing.eventTitle}
                   </h3>
                   <p className="mb-3 text-xs text-foreground/70">

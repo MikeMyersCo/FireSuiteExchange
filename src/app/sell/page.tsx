@@ -24,7 +24,7 @@ export default function SellPage() {
     pricePerSeat: '',
     deliveryMethod: 'MOBILE_TRANSFER',
     contactEmail: session?.user?.email || '',
-    contactPhone: session?.user?.phone || '',
+    contactPhone: (session?.user as any)?.phone || '',
     contactLink: '',
     contactMessenger: '',
     allowMessages: false,

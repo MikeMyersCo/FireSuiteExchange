@@ -17,7 +17,8 @@ export default function ApproverApplicationsPage() {
 
   useEffect(() => {
     if (status === 'authenticated') {
-      if (session?.user?.role !== 'APPROVER' && session?.user?.role !== 'ADMIN') {
+      const userRole = session?.user?.role as string;
+      if (userRole !== 'APPROVER' && userRole !== 'ADMIN') {
         router.push('/');
       } else {
         fetchApplications();
@@ -122,7 +123,8 @@ export default function ApproverApplicationsPage() {
     );
   }
 
-  if (session?.user?.role !== 'APPROVER' && session?.user?.role !== 'ADMIN') {
+  const userRole = session?.user?.role as string;
+  if (userRole !== 'APPROVER' && userRole !== 'ADMIN') {
     return null;
   }
 

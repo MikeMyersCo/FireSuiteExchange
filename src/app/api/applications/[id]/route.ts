@@ -18,7 +18,8 @@ export async function PATCH(
     }
 
     // Only admins and approvers can approve/deny applications
-    if (session.user.role !== 'ADMIN' && session.user.role !== 'APPROVER') {
+    const userRole = session.user.role as string;
+    if (userRole !== 'ADMIN' && userRole !== 'APPROVER') {
       return NextResponse.json(
         { error: 'Forbidden - Admin or Approver access required' },
         { status: 403 }
@@ -132,7 +133,8 @@ export async function GET(
     }
 
     // Only allow user to view their own application or admins/approvers to view any
-    if (application.userId !== session.user.id && session.user.role !== 'ADMIN' && session.user.role !== 'APPROVER') {
+    const viewerRole = session.user.role as string;
+    if (application.userId !== session.user.id && viewerRole !== 'ADMIN' && viewerRole !== 'APPROVER') {
       return NextResponse.json(
         { error: 'Forbidden' },
         { status: 403 }

@@ -143,7 +143,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Only admins and approvers can view all applications
-    if (session.user.role !== 'ADMIN' && session.user.role !== 'APPROVER') {
+    const userRole = session.user.role as string;
+    if (userRole !== 'ADMIN' && userRole !== 'APPROVER') {
       return NextResponse.json(
         { error: 'Forbidden - Admin or Approver access required' },
         { status: 403 }

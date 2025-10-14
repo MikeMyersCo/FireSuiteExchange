@@ -2,14 +2,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { SuiteArea } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 // Map database SuiteArea to map Area type
 function mapSuiteAreaToMapArea(area: SuiteArea): "LOWER" | "NORTH" | "SOUTH" {
   switch (area) {
-    case 'LOWER_FIRE':
+    case 'L':
       return 'LOWER';
-    case 'NORTH_TERRACE':
+    case 'UNT':
       return 'NORTH';
-    case 'SOUTH_TERRACE':
+    case 'UST':
       return 'SOUTH';
     default:
       return 'LOWER';

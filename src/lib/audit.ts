@@ -18,7 +18,7 @@ export async function createAuditEvent(data: AuditEventData) {
         action: data.action,
         targetType: data.targetType,
         targetId: data.targetId,
-        metadata: data.metadata || {},
+        metadata: (data.metadata || {}) as any,
         ipAddress: data.ipAddress,
         userAgent: data.userAgent,
       },
