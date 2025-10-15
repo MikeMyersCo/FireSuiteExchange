@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { EVENT_NAMES, EVENTS_2026 } from '@/lib/events-2026';
 
+// Force dynamic rendering - this page requires authentication
+export const dynamic = 'force-dynamic';
+
 export default function SellPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
