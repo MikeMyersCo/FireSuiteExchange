@@ -33,10 +33,16 @@ export default function SellPage() {
   });
 
   useEffect(() => {
+    if (status === 'unauthenticated') {
+      // Redirect to login if not authenticated
+      router.push('/login?callbackUrl=/sell');
+      return;
+    }
+
     if (status === 'authenticated' && session?.user) {
       fetchVerifiedSuites();
     }
-  }, [status, session]);
+  }, [status, session, router]);
 
   const fetchVerifiedSuites = async () => {
     try {
