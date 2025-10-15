@@ -30,11 +30,9 @@ export const authConfig = {
       }
 
       if (isOnDashboard) {
-        if (!isLoggedIn) return false;
-        if (auth.user.role !== 'SELLER' && auth.user.role !== 'ADMIN') {
-          return Response.redirect(new URL('/apply-seller', nextUrl));
-        }
-        return true;
+        // Let the page handle auth - it will check for verified suites
+        // and show appropriate messaging
+        return isLoggedIn ? true : false;
       }
 
       return true;
