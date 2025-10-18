@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import EventsCalendar from '@/components/EventsCalendar';
+import VenueMap from '@/components/VenueMap';
 
 interface ListingData {
   listingId: string;
@@ -231,66 +232,14 @@ function BrowseContent() {
         {/* Two column layout: Filters on left (1/4), Listings on right (3/4) */}
         <div className="flex flex-col gap-4 lg:flex-row">
           {/* Left sidebar - Horizontal layout with Suite Filter and Events Calendar */}
-          <div className="lg:w-1/4">
-            <div className="lg:sticky lg:top-20 flex flex-row gap-4 lg:flex-col">
-              {/* Suite Area Filter - Takes less vertical space */}
-              <div className="flex-1 lg:flex-none rounded-2xl border border-border bg-card p-4">
-                <h3 className="mb-3 text-lg font-bold text-foreground text-center whitespace-nowrap">Filter by Suite Area</h3>
-                <div className="space-y-2">
-                  <button
-                    onClick={() => setSelectedSuiteArea(selectedSuiteArea === 'L' ? null : 'L')}
-                    className={`w-full rounded-lg border-2 px-3 py-2 text-left text-sm font-medium transition-all ${
-                      selectedSuiteArea === 'L'
-                        ? 'border-foreground bg-green-100 text-black'
-                        : 'border-border bg-background text-foreground hover:bg-secondary'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span>Lower Bowl</span>
-                      <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-bold">
-                        {suiteAreaCounts.L}
-                      </span>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setSelectedSuiteArea(selectedSuiteArea === 'UNT' ? null : 'UNT')}
-                    className={`w-full rounded-lg border-2 px-3 py-2 text-left text-sm font-medium transition-all ${
-                      selectedSuiteArea === 'UNT'
-                        ? 'border-foreground bg-yellow-100 text-black'
-                        : 'border-border bg-background text-foreground hover:bg-secondary'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span>North Terrace</span>
-                      <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-bold">
-                        {suiteAreaCounts.UNT}
-                      </span>
-                    </div>
-                  </button>
-                  <button
-                    onClick={() => setSelectedSuiteArea(selectedSuiteArea === 'UST' ? null : 'UST')}
-                    className={`w-full rounded-lg border-2 px-3 py-2 text-left text-sm font-medium transition-all ${
-                      selectedSuiteArea === 'UST'
-                        ? 'border-foreground bg-yellow-100 text-black'
-                        : 'border-border bg-background text-foreground hover:bg-secondary'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span>South Terrace</span>
-                      <span className="rounded-full bg-foreground/10 px-2 py-0.5 text-xs font-bold">
-                        {suiteAreaCounts.UST}
-                      </span>
-                    </div>
-                  </button>
-                  {selectedSuiteArea && (
-                    <button
-                      onClick={() => setSelectedSuiteArea(null)}
-                      className="w-full rounded-lg border-2 border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground/70 transition-all hover:bg-secondary"
-                    >
-                      Clear Filter
-                    </button>
-                  )}
-                </div>
+          <div className="lg:w-1/4 lg:-ml-16">
+            <div className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto flex flex-row gap-4 lg:flex-col">
+              {/* Venue Map - Interactive seating chart */}
+              <div className="flex-1 lg:flex-none">
+                <VenueMap
+                  selectedArea={selectedSuiteArea}
+                  onAreaSelect={setSelectedSuiteArea}
+                />
               </div>
 
               <div className="flex-1">
