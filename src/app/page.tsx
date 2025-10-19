@@ -225,11 +225,12 @@ export default function HomePage() {
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
                 href="/browse"
-                className="group inline-flex h-14 items-center justify-center rounded-xl border-2 border-white bg-primary px-8 text-base font-bold text-foreground shadow-2xl transition-all hover:scale-105 hover:bg-white hover:shadow-[0_0_40px_rgba(255,255,255,0.5)] active:scale-[0.98]"
+                className="group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-xl border-2 border-white bg-gradient-to-r from-primary via-primary to-primary-600 px-8 text-base font-bold text-foreground shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.6)] active:scale-[0.98]"
               >
-                Browse Tickets
+                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
+                <span className="relative">Browse Tickets</span>
                 <svg
-                  className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
+                  className="relative ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -239,9 +240,10 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/sell"
-                className="inline-flex h-14 items-center justify-center rounded-xl border-2 border-white bg-white/10 px-8 text-base font-bold text-white shadow-2xl backdrop-blur-sm transition-all hover:scale-105 hover:bg-white/20"
+                className="group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-xl border-2 border-white bg-white/10 px-8 text-base font-bold text-white shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-gradient-to-r hover:from-white/20 hover:to-white/30 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]"
               >
-                List Your Tickets
+                <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
+                <span className="relative">List Your Tickets</span>
               </Link>
             </div>
           </div>
@@ -255,18 +257,22 @@ export default function HomePage() {
             </h2>
             <div className="grid gap-6 md:grid-cols-3">
               {upcomingShows.map((show, index) => (
-                <div key={show.eventTitle} className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-card-subtle transition-all hover:shadow-card-hover">
+                <div key={show.eventTitle} className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-card-subtle transition-all duration-300 hover:scale-[1.02] hover:shadow-card-elevated hover:border-primary/30">
                   <Link href={`/browse?event=${encodeURIComponent(show.eventTitle)}`} className="absolute inset-0 z-0" />
+
+                  {/* Gradient overlay on hover */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 z-[1]"></div>
+
                   <div className="relative z-10">
                     <div className="mb-4 flex items-center justify-between">
-                      <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-primary text-3xl">
+                      <div className="inline-flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary-600 text-3xl shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
                         🎵
                       </div>
-                      <div className="rounded-full bg-primary px-4 py-2 text-xl font-bold text-primary-foreground">
+                      <div className="rounded-full bg-gradient-to-r from-teal-500 to-blue-500 px-4 py-2 text-xl font-bold text-white shadow-lg">
                         {show.totalListings}
                       </div>
                     </div>
-                    <h3 className="mb-3 text-heading-sm font-semibold text-foreground line-clamp-2 min-h-[3.5rem]">
+                    <h3 className="mb-3 text-heading-sm font-semibold text-foreground line-clamp-2 min-h-[3.5rem] font-serif italic">
                       {show.eventTitle}
                     </h3>
                     <p className="text-sm text-foreground/70 mb-3">
@@ -301,12 +307,12 @@ export default function HomePage() {
                         S. Terr: {show.counts.UST}
                       </Link>
                     </div>
-                    <p className="text-sm font-semibold text-primary">
+                    <p className="text-sm font-semibold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">
                       {show.totalListings} {show.totalListings === 1 ? 'listing' : 'listings'} available
                     </p>
-                    <div className="mt-4 flex items-center text-sm font-medium text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                    <div className="mt-4 flex items-center text-sm font-medium text-primary opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-2">
                       View listings
-                      <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
@@ -325,7 +331,7 @@ export default function HomePage() {
             </h2>
             <div className="grid gap-12 md:grid-cols-3 md:gap-8">
               <div className="group">
-                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-xl font-bold text-primary-foreground shadow-md">
+                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-blue-500 text-xl font-bold text-white shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-2xl">
                   1
                 </div>
                 <h3 className="mb-3 text-heading-sm font-semibold text-foreground">Browse Verified Listings</h3>
@@ -335,7 +341,7 @@ export default function HomePage() {
               </div>
 
               <div className="group">
-                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-xl font-bold text-primary-foreground shadow-md">
+                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-xl font-bold text-white shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-2xl">
                   2
                 </div>
                 <h3 className="mb-3 text-heading-sm font-semibold text-foreground">Contact with Confidence</h3>
@@ -345,7 +351,7 @@ export default function HomePage() {
               </div>
 
               <div className="group">
-                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-primary text-xl font-bold text-primary-foreground shadow-md">
+                <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-red-500 text-xl font-bold text-white shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-2xl">
                   3
                 </div>
                 <h3 className="mb-3 text-heading-sm font-semibold text-foreground">Enjoy the Show</h3>
@@ -360,7 +366,11 @@ export default function HomePage() {
         {/* CTA Section - Prominent card with cream theme */}
         <section className="py-16 md:py-24">
           <div className="container mx-auto">
-            <div className="relative overflow-hidden rounded-3xl border-2 border-foreground bg-primary px-8 py-16 text-center md:px-12 md:py-20">
+            <div className="relative overflow-hidden rounded-3xl border-2 border-primary bg-gradient-to-br from-primary via-primary to-primary-600 px-8 py-16 text-center shadow-2xl md:px-12 md:py-20">
+              {/* Decorative gradient orbs */}
+              <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-gradient-to-br from-teal-400/20 to-blue-400/20 blur-3xl"></div>
+              <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-400/20 blur-3xl"></div>
+
               <div className="relative z-10">
                 <h2 className="mb-4 text-3xl font-bold text-foreground md:text-4xl lg:text-5xl">Own a Fire Suite?</h2>
                 <p className="mx-auto mb-8 max-w-2xl text-lg font-semibold leading-relaxed text-foreground/90">
@@ -368,9 +378,13 @@ export default function HomePage() {
                 </p>
                 <Link
                   href="/verify-suite"
-                  className="inline-flex h-12 items-center justify-center rounded-xl border-2 border-foreground bg-background px-8 text-base font-semibold text-foreground transition-all hover:bg-secondary active:scale-[0.98]"
+                  className="group relative inline-flex h-12 items-center justify-center overflow-hidden rounded-xl border-2 border-foreground bg-background px-8 text-base font-semibold text-foreground shadow-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl active:scale-[0.98]"
                 >
-                  Apply to Become a Verified Seller
+                  <span className="absolute inset-0 bg-gradient-to-r from-teal-100/0 via-teal-100/30 to-teal-100/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
+                  <span className="relative">Apply to Become a Verified Seller</span>
+                  <svg className="relative ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Link>
               </div>
             </div>

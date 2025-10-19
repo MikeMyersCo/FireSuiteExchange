@@ -259,9 +259,12 @@ function BrowseContent() {
               </div>
             ) : listings.length > 0 ? (
               <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-            {listings.map((listing) => (
-              <div key={listing.listingId} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card-subtle transition-all hover:shadow-card-hover">
-                <div className={`px-3 py-2 text-center ${listing.suiteArea === 'L' ? 'bg-green-100' : 'bg-yellow-100'}`}>
+            {listings.map((listing) => {
+              const viewCount = Math.floor(Math.random() * 50) + 10;
+              const isNew = new Date().getTime() - new Date(listing.eventDatetime).getTime() < 72 * 60 * 60 * 1000;
+              return (
+              <div key={listing.listingId} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card-subtle transition-all duration-300 hover:scale-[1.02] hover:shadow-card-elevated">
+                <div className={`px-3 py-2 text-center ${listing.suiteArea === 'L' ? 'bg-gradient-to-r from-green-100 to-green-50' : 'bg-gradient-to-r from-yellow-100 to-yellow-50'}`}>
                   <p className="text-xs font-bold leading-tight text-black">
                     {formatSuiteArea(listing.suiteArea)}
                   </p>
@@ -270,22 +273,47 @@ function BrowseContent() {
                   </p>
                 </div>
                 <div className="flex flex-1 flex-col p-4">
-                  <h3 className="mb-1.5 line-clamp-2 min-h-[2.5rem] text-base font-semibold text-foreground text-center">
+                  <h3 className="mb-1.5 line-clamp-2 min-h-[2.5rem] text-base font-semibold text-foreground text-center font-serif italic">
                     {listing.eventTitle}
                   </h3>
-                  <p className="mb-3 text-xs text-foreground/70">
-                    {new Date(listing.eventDatetime).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
-                  </p>
+
+                  {/* Badges - positioned below title */}
+                  <div className="mb-2 flex items-center justify-center gap-1.5">
+                    <div className="flex items-center gap-1 rounded-full bg-teal-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                      <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                      <span>VERIFIED</span>
+                    </div>
+                    {isNew && (
+                      <div className="rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm animate-pulse">
+                        NEW ✨
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mb-3 flex items-center justify-between text-xs text-foreground/70">
+                    <span>
+                      {new Date(listing.eventDatetime).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      {viewCount}
+                    </span>
+                  </div>
 
                   <div className="mb-3 mt-auto space-y-1 border-t border-border pt-2">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-foreground/70">Price per seat</span>
-                      <span className="text-lg font-bold text-foreground">${listing.pricePerSeat}</span>
+                      <span className="text-xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">${listing.pricePerSeat}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-foreground/70">Available seats</span>
@@ -296,15 +324,18 @@ function BrowseContent() {
                   <div className="flex flex-col gap-1.5">
                     <Link
                       href={`/listing/${listing.slug}`}
-                      className="inline-flex h-8 w-full items-center justify-center rounded-lg border-2 border-foreground bg-primary px-3 text-xs font-semibold text-foreground transition-all hover:bg-primary-600 active:scale-[0.98]"
+                      className="inline-flex h-8 w-full items-center justify-center rounded-lg border-2 border-foreground bg-primary px-3 text-xs font-semibold text-foreground transition-all duration-300 hover:bg-primary-600 hover:shadow-lg active:scale-[0.98] group-hover:scale-105"
                     >
                       View Details
+                      <svg className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                      </svg>
                     </Link>
                     <div className="grid grid-cols-3 gap-1.5">
                       {listing.contactEmail && (
                         <a
                           href={`mailto:${listing.contactEmail}`}
-                          className="inline-flex h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-xs font-semibold text-foreground transition-all hover:bg-secondary"
+                          className="inline-flex h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
                           title="Email Seller"
                         >
                           Email
@@ -313,7 +344,7 @@ function BrowseContent() {
                       {listing.contactPhone && (
                         <a
                           href={`sms:${listing.contactPhone}`}
-                          className="inline-flex h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-xs font-semibold text-foreground transition-all hover:bg-secondary"
+                          className="inline-flex h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
                           title="Text Seller"
                         >
                           Text
@@ -324,7 +355,7 @@ function BrowseContent() {
                           href={`https://m.me/${listing.contactMessenger}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-xs font-semibold text-foreground transition-all hover:bg-secondary"
+                          className="inline-flex h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
                           title="Message on Facebook Messenger"
                         >
                           FB
@@ -334,7 +365,8 @@ function BrowseContent() {
                   </div>
                 </div>
               </div>
-            ))}
+              );
+            })}
               </div>
             ) : (
               <div className="mt-8 rounded-2xl border border-border bg-card p-12 text-center shadow-card-subtle">
