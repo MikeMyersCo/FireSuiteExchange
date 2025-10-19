@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import EventsCalendar from '@/components/EventsCalendar';
 import VenueMap from '@/components/VenueMap';
+import { createPortal } from 'react-dom';
 
 interface ListingData {
   listingId: string;
@@ -46,6 +47,12 @@ function BrowseContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [selectedSuiteArea, setSelectedSuiteArea] = useState<string | null>(null);
+  const [showVerifiedModal, setShowVerifiedModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     fetchListings();
@@ -279,12 +286,20 @@ function BrowseContent() {
 
                   {/* Badges - positioned below title */}
                   <div className="mb-2 flex items-center justify-center gap-1.5">
-                    <div className="flex items-center gap-1 rounded-full bg-teal-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowVerifiedModal(true);
+                      }}
+                      className="flex items-center gap-1 rounded-full bg-teal-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm cursor-pointer transition-all hover:bg-teal-600 hover:scale-105"
+                      title="Click to learn more about verified sellers"
+                    >
                       <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                       </svg>
                       <span>VERIFIED</span>
-                    </div>
+                    </button>
                     {isNew && (
                       <div className="rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm animate-pulse">
                         NEW ✨
@@ -432,6 +447,100 @@ function BrowseContent() {
           </div>
         </div>
       </footer>
+
+      {/* Verified Badge Information Modal */}
+      {mounted && showVerifiedModal && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowVerifiedModal(false)}
+        >
+          <div
+            className="relative w-full max-w-lg rounded-2xl border-2 border-border bg-card p-8 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setShowVerifiedModal(false)}
+              className="absolute right-4 top-4 rounded-lg p-2 text-foreground/70 transition-all hover:bg-secondary hover:text-foreground"
+              aria-label="Close"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Header */}
+            <div className="mb-6">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-teal-500 px-3 py-1.5 text-sm font-bold text-white shadow-lg">
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span>VERIFIED SELLER</span>
+              </div>
+              <h3 className="text-2xl font-bold text-foreground">What does this mean?</h3>
+            </div>
+
+            {/* Content */}
+            <div className="space-y-4">
+              <div className="rounded-xl bg-green-50 border border-green-200 p-4">
+                <div className="flex items-start gap-3">
+                  <svg className="h-6 w-6 flex-shrink-0 text-green-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">Verified Ownership</h4>
+                    <p className="text-sm text-foreground/80">
+                      This seller has been verified as a legitimate Fire Suite owner at Ford Amphitheater. They have provided proof of ownership and been approved by our team.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-yellow-50 border border-yellow-200 p-4">
+                <div className="flex items-start gap-3">
+                  <svg className="h-6 w-6 flex-shrink-0 text-yellow-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">Stay Vigilant</h4>
+                    <p className="text-sm text-foreground/80">
+                      While we verify suite ownership, always exercise caution when purchasing tickets. Communicate directly with sellers, verify ticket details, and use secure payment methods.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4">
+                <div className="flex items-start gap-3">
+                  <svg className="h-6 w-6 flex-shrink-0 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">Best Practices</h4>
+                    <ul className="text-sm text-foreground/80 space-y-1 mt-1">
+                      <li>• Request to see the actual tickets before payment</li>
+                      <li>• Meet in a safe, public location if exchanging in person</li>
+                      <li>• Use payment methods with buyer protection</li>
+                      <li>• Report any suspicious behavior to our team</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="mt-6 pt-6 border-t border-border">
+              <button
+                onClick={() => setShowVerifiedModal(false)}
+                className="w-full rounded-lg border-2 border-foreground bg-primary px-6 py-3 font-semibold text-foreground transition-all hover:bg-primary-600"
+              >
+                Got it, thanks!
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
