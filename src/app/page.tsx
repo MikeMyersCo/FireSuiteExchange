@@ -15,6 +15,7 @@ export default function HomePage() {
   const { data: session } = useSession();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [upcomingShows, setUpcomingShows] = useState<UpcomingShow[]>([]);
+  const [pendingCount, setPendingCount] = useState<number>(0);
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -79,6 +80,27 @@ export default function HomePage() {
     fetchUpcomingShows();
   }, []);
 
+  // Fetch pending applications count for approvers/admins
+  useEffect(() => {
+    async function fetchPendingCount() {
+      if (!session?.user) return;
+
+      const role = session.user.role as string;
+      if (role !== 'APPROVER' && role !== 'ADMIN') return;
+
+      try {
+        const response = await fetch('/api/applications/pending-count');
+        const data = await response.json();
+        if (data.success) {
+          setPendingCount(data.count);
+        }
+      } catch (error) {
+        console.error('Error fetching pending count:', error);
+      }
+    }
+    fetchPendingCount();
+  }, [session]);
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header - Dark teal bar like Wispr Flow */}
@@ -102,8 +124,13 @@ export default function HomePage() {
               Become a Seller
             </Link>
             {(session?.user?.role as string) === 'APPROVER' || (session?.user?.role as string) === 'ADMIN' ? (
-              <Link href="/approver/applications" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
+              <Link href="/approver/applications" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground relative inline-flex items-center gap-2">
                 Review Applications
+                {pendingCount > 0 && (
+                  <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                    {pendingCount}
+                  </span>
+                )}
               </Link>
             ) : null}
             {session ? (
@@ -188,10 +215,15 @@ export default function HomePage() {
           {(session?.user?.role as string) === 'APPROVER' || (session?.user?.role as string) === 'ADMIN' ? (
             <Link
               href="/approver/applications"
-              className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground flex items-center justify-between"
               onClick={() => setMobileMenuOpen(false)}
             >
-              Review Applications
+              <span>Review Applications</span>
+              {pendingCount > 0 && (
+                <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                  {pendingCount}
+                </span>
+              )}
             </Link>
           ) : null}
           {session ? (
