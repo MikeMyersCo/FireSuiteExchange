@@ -57,6 +57,7 @@ model User {
   twoFaSecret   String?   @map("twofa_secret")
   emailVerified DateTime? @map("email_verified")
   isLocked      Boolean   @default(false) @map("is_locked")
+  showInDirectory Boolean @default(false) @map("show_in_directory")
   createdAt     DateTime  @default(now()) @map("created_at")
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
@@ -67,6 +68,8 @@ model User {
   messagesReceived   Message[]           @relation("MessageTo")
   auditEvents        AuditEvent[]
   notificationPref   NotificationPref?
+  discussions        Discussion[]
+  discussionReplies  DiscussionReply[]
 
   @@index([email])
   @@index([role])
@@ -236,4 +239,48 @@ model PasswordResetToken {
   @@index([email])
   @@index([token])
   @@map("password_reset_tokens")
+}
+
+model Discussion {
+  id             String   @id @default(cuid())
+  authorId       String   @map("author_id")
+  title          String
+  content        String   @db.Text
+  category       String?  @default("General")
+  isPinned       Boolean  @default(false) @map("is_pinned")
+  isLocked       Boolean  @default(false) @map("is_locked")
+  viewCount      Int      @default(0) @map("view_count")
+  replyCount     Int      @default(0) @map("reply_count")
+  lastActivityAt DateTime @default(now()) @map("last_activity_at")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  author  User              @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  replies DiscussionReply[]
+
+  @@index([authorId])
+  @@index([category])
+  @@index([isPinned])
+  @@index([lastActivityAt])
+  @@index([createdAt])
+  @@map("discussions")
+}
+
+model DiscussionReply {
+  id           String   @id @default(cuid())
+  discussionId String   @map("discussion_id")
+  authorId     String   @map("author_id")
+  content      String   @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  discussion Discussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  author     User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([discussionId])
+  @@index([authorId])
+  @@index([createdAt])
+  @@map("discussion_replies")
 }

@@ -93,6 +93,11 @@ export default function HomePage() {
             <Link href="/browse" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
               Browse Listings
             </Link>
+            {session && (session?.user?.role as string) !== 'GUEST' && (
+              <Link href="/owners" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
+                Owners Lounge
+              </Link>
+            )}
             <Link href="/verify-suite" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
               Become a Seller
             </Link>
@@ -102,12 +107,17 @@ export default function HomePage() {
               </Link>
             ) : null}
             {session ? (
-              <button
-                onClick={() => signOut({ callbackUrl: '/' })}
-                className="rounded-xl border-2 border-accent-foreground bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-600"
-              >
-                Logout
-              </button>
+              <>
+                <Link href="/profile" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
+                  Profile
+                </Link>
+                <button
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className="rounded-xl border-2 border-accent-foreground bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-600"
+                >
+                  Logout
+                </button>
+              </>
             ) : (
               <Link
                 href="/login"
@@ -159,6 +169,15 @@ export default function HomePage() {
           >
             Browse Listings
           </Link>
+          {session && (session?.user?.role as string) !== 'GUEST' && (
+            <Link
+              href="/owners"
+              className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Owners Lounge
+            </Link>
+          )}
           <Link
             href="/verify-suite"
             className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -176,15 +195,24 @@ export default function HomePage() {
             </Link>
           ) : null}
           {session ? (
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                signOut({ callbackUrl: '/' });
-              }}
-              className="mt-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-600"
-            >
-              Logout
-            </button>
+            <>
+              <Link
+                href="/profile"
+                className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Profile
+              </Link>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  signOut({ callbackUrl: '/' });
+                }}
+                className="mt-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-600"
+              >
+                Logout
+              </button>
+            </>
           ) : (
             <Link
               href="/login"
