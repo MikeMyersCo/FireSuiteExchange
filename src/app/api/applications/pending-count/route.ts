@@ -10,7 +10,15 @@ export async function GET() {
     const session = await auth();
 
     // Only APPROVERs and ADMINs can see this
-    if (!session || (session.user.role !== 'APPROVER' && session.user.role !== 'ADMIN')) {
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const userRole = session.user.role as string;
+    if (userRole !== 'APPROVER' && userRole !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
