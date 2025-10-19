@@ -222,7 +222,7 @@ function BrowseContent() {
       </div>
 
       {/* Main Content */}
-      <main className="container mx-auto py-12 md:py-16">
+      <main className="container mx-auto py-8 md:py-16">
         <div className="mb-10 text-center">
           <h1 className="mb-3 text-heading-lg font-bold text-foreground">
             Browse Fire Suite Tickets
@@ -238,9 +238,9 @@ function BrowseContent() {
 
         {/* Two column layout: Filters on left (1/4), Listings on right (3/4) */}
         <div className="flex flex-col gap-4 lg:flex-row">
-          {/* Left sidebar - Horizontal layout with Suite Filter and Events Calendar */}
+          {/* Left sidebar - Vertical layout on mobile, sticky on desktop */}
           <div className="lg:w-1/4 lg:-ml-16">
-            <div className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto flex flex-row gap-4 lg:flex-col">
+            <div className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto flex flex-col gap-4">
               {/* Venue Map - Interactive seating chart */}
               <div className="flex-1 lg:flex-none">
                 <VenueMap
@@ -265,7 +265,7 @@ function BrowseContent() {
                 </div>
               </div>
             ) : listings.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {listings.map((listing) => {
               const viewCount = Math.floor(Math.random() * 50) + 10;
               const isNew = new Date().getTime() - new Date(listing.eventDatetime).getTime() < 72 * 60 * 60 * 1000;
@@ -339,7 +339,7 @@ function BrowseContent() {
                   <div className="flex flex-col gap-1.5">
                     <Link
                       href={`/listing/${listing.slug}`}
-                      className="inline-flex h-8 w-full items-center justify-center rounded-lg border-2 border-foreground bg-primary px-3 text-xs font-semibold text-foreground transition-all duration-300 hover:bg-primary-600 hover:shadow-lg active:scale-[0.98] group-hover:scale-105"
+                      className="inline-flex h-9 sm:h-8 w-full items-center justify-center rounded-lg border-2 border-foreground bg-primary px-3 text-xs sm:text-xs font-semibold text-foreground transition-all duration-300 hover:bg-primary-600 hover:shadow-lg active:scale-[0.98] group-hover:scale-105"
                     >
                       View Details
                       <svg className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -350,7 +350,7 @@ function BrowseContent() {
                       {listing.contactEmail && (
                         <a
                           href={`mailto:${listing.contactEmail}`}
-                          className="inline-flex h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
+                          className="inline-flex h-9 sm:h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-[11px] sm:text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
                           title="Email Seller"
                         >
                           Email
@@ -359,7 +359,7 @@ function BrowseContent() {
                       {listing.contactPhone && (
                         <a
                           href={`sms:${listing.contactPhone}`}
-                          className="inline-flex h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
+                          className="inline-flex h-9 sm:h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-[11px] sm:text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
                           title="Text Seller"
                         >
                           Text
@@ -370,7 +370,7 @@ function BrowseContent() {
                           href={`https://m.me/${listing.contactMessenger}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
+                          className="inline-flex h-9 sm:h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-[11px] sm:text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
                           title="Message on Facebook Messenger"
                         >
                           FB
@@ -403,7 +403,7 @@ function BrowseContent() {
 
             {/* Instructions */}
             {!loading && listings.length > 0 && (
-              <div className="mt-12 rounded-2xl border border-primary/20 bg-primary-50 p-8">
+              <div className="mt-8 md:mt-12 rounded-2xl border border-primary/20 bg-primary-50 p-6 md:p-8">
                 <h3 className="mb-4 text-heading-sm font-semibold text-foreground">How to Purchase</h3>
                 <ol className="space-y-3 text-base text-foreground/70">
                   <li className="flex items-start">
@@ -430,7 +430,7 @@ function BrowseContent() {
       </main>
 
       {/* Footer - Clean minimal footer */}
-      <footer className="mt-16 border-t border-border bg-card/50 py-12">
+      <footer className="mt-12 md:mt-16 border-t border-border bg-card/50 py-8 md:py-12">
         <div className="container mx-auto">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="text-sm text-foreground/70">
@@ -455,7 +455,7 @@ function BrowseContent() {
           onClick={() => setShowVerifiedModal(false)}
         >
           <div
-            className="relative w-full max-w-lg rounded-2xl border-2 border-border bg-card p-8 shadow-2xl"
+            className="relative w-full max-w-lg rounded-2xl border-2 border-border bg-card p-6 sm:p-8 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close button */}

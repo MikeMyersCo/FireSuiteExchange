@@ -23,6 +23,14 @@ const config = {
         '2xl': '1280px',
       },
     },
+    screens: {
+      'xs': '475px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+    },
     extend: {
       fontFamily: {
         sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', '-apple-system', 'Inter', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],

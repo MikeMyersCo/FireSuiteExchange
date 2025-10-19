@@ -259,7 +259,7 @@ export default function HomePage() {
 
       {/* Hero Section - Background concert image with overlay */}
       <main className="flex-1">
-        <section className="relative overflow-hidden py-32 sm:py-40 md:py-48 lg:py-56">
+        <section className="relative overflow-hidden py-16 sm:py-32 md:py-48 lg:py-56">
           {/* Background Image with Overlay */}
           <div className="absolute inset-0 z-0">
             <div
@@ -285,7 +285,7 @@ export default function HomePage() {
             <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
                 href="/browse"
-                className="group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-xl border-2 border-white bg-gradient-to-r from-primary via-primary to-primary-600 px-8 text-base font-bold text-foreground shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.6)] active:scale-[0.98]"
+                className="group relative inline-flex h-14 w-full sm:w-auto items-center justify-center overflow-hidden rounded-xl border-2 border-white bg-gradient-to-r from-primary via-primary to-primary-600 px-8 text-base font-bold text-foreground shadow-2xl transition-all duration-300 hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.6)] active:scale-[0.98]"
               >
                 <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
                 <span className="relative">Browse Tickets</span>
@@ -300,7 +300,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="/sell"
-                className="group relative inline-flex h-14 items-center justify-center overflow-hidden rounded-xl border-2 border-white bg-white/10 px-8 text-base font-bold text-white shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-gradient-to-r hover:from-white/20 hover:to-white/30 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+                className="group relative inline-flex h-14 w-full sm:w-auto items-center justify-center overflow-hidden rounded-xl border-2 border-white bg-white/10 px-8 text-base font-bold text-white shadow-2xl backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-gradient-to-r hover:from-white/20 hover:to-white/30 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)]"
               >
                 <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></span>
                 <span className="relative">List Your Tickets</span>
@@ -310,12 +310,12 @@ export default function HomePage() {
         </section>
 
         {/* Upcoming Shows - Clean card grid with Wispr Flow aesthetic */}
-        <section className="py-4 md:py-6">
+        <section className="py-8 md:py-6">
           <div className="container mx-auto">
             <h2 className="mb-6 text-center text-heading-lg font-bold text-foreground">
               Upcoming Concerts
             </h2>
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {upcomingShows.map((show, index) => (
                 <div key={show.eventTitle} className="group relative overflow-hidden rounded-2xl border border-border bg-card p-8 shadow-card-subtle transition-all duration-300 hover:scale-[1.02] hover:shadow-card-elevated hover:border-primary/30">
                   <Link href={`/browse?event=${encodeURIComponent(show.eventTitle)}`} className="absolute inset-0 z-0" />
@@ -344,7 +344,7 @@ export default function HomePage() {
                         minute: '2-digit',
                       })}
                     </p>
-                    <div className="flex gap-2 mb-3">
+                    <div className="flex flex-wrap gap-2 mb-3 justify-center">
                       <Link
                         href={`/browse?event=${encodeURIComponent(show.eventTitle)}&area=L`}
                         className="relative z-20 rounded-full bg-green-100 px-3 py-1 text-xs font-bold text-black hover:bg-green-200 transition-colors"
@@ -384,12 +384,12 @@ export default function HomePage() {
         </section>
 
         {/* How It Works - Feature rows with consistent rhythm */}
-        <section className="bg-secondary/30 py-16 md:py-24">
+        <section className="bg-secondary/30 py-12 md:py-24">
           <div className="container mx-auto">
-            <h2 className="mb-16 text-center text-heading-lg font-bold text-foreground">
+            <h2 className="mb-12 md:mb-16 text-center text-heading-lg font-bold text-foreground">
               How It Works
             </h2>
-            <div className="grid gap-12 md:grid-cols-3 md:gap-8">
+            <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-3 md:gap-8">
               <div className="group">
                 <div className="mb-6 inline-flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-blue-500 text-xl font-bold text-white shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:shadow-2xl">
                   1
@@ -424,9 +424,9 @@ export default function HomePage() {
         </section>
 
         {/* CTA Section - Prominent card with cream theme */}
-        <section className="py-16 md:py-24">
+        <section className="py-12 md:py-24">
           <div className="container mx-auto">
-            <div className="relative overflow-hidden rounded-3xl border-2 border-primary bg-gradient-to-br from-primary via-primary to-primary-600 px-8 py-16 text-center shadow-2xl md:px-12 md:py-20">
+            <div className="relative overflow-hidden rounded-3xl border-2 border-primary bg-gradient-to-br from-primary via-primary to-primary-600 px-6 py-12 text-center shadow-2xl sm:px-8 sm:py-16 md:px-12 md:py-20">
               {/* Decorative gradient orbs */}
               <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-gradient-to-br from-teal-400/20 to-blue-400/20 blur-3xl"></div>
               <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-400/20 blur-3xl"></div>
@@ -453,7 +453,7 @@ export default function HomePage() {
       </main>
 
       {/* Footer - Clean minimal footer */}
-      <footer className="border-t border-border bg-secondary/30 py-12">
+      <footer className="border-t border-border bg-secondary/30 py-8 md:py-12">
         <div className="container mx-auto">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="text-sm text-muted-foreground">

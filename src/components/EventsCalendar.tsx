@@ -189,17 +189,18 @@ export default function EventsCalendar({ onEventSelect, selectedEvent }: EventsC
               {/* Day Headers */}
               <div className="grid grid-cols-7 gap-3 mb-3">
                 {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => (
-                  <div key={day} className="text-center text-sm font-semibold text-foreground/60 py-2">
-                    {day}
+                  <div key={day} className="text-center text-xs sm:text-sm font-semibold text-foreground/60 py-2">
+                    <span className="hidden xs:inline">{day}</span>
+                    <span className="xs:hidden">{day.slice(0, 3)}</span>
                   </div>
                 ))}
               </div>
 
               {/* Calendar Days */}
-              <div className="grid grid-cols-7 gap-3">
+              <div className="grid grid-cols-7 gap-2 sm:gap-3">
                 {calendarDays.map((day, index) => {
                   if (day === null) {
-                    return <div key={`empty-${index}`} className="min-h-[100px]" />;
+                    return <div key={`empty-${index}`} className="min-h-[80px] sm:min-h-[100px]" />;
                   }
 
                   const event = getEventForDay(day);
@@ -210,7 +211,7 @@ export default function EventsCalendar({ onEventSelect, selectedEvent }: EventsC
                       key={day}
                       onClick={() => event && handleEventSelect(event.artist)}
                       disabled={!event}
-                      className={`min-h-[100px] rounded-lg border p-3 text-sm transition-all ${
+                      className={`min-h-[80px] sm:min-h-[100px] rounded-lg border p-2 sm:p-3 text-xs sm:text-sm transition-all ${
                         event
                           ? isSelected
                             ? 'border-primary bg-primary text-foreground font-bold shadow-md'
@@ -219,9 +220,9 @@ export default function EventsCalendar({ onEventSelect, selectedEvent }: EventsC
                       }`}
                     >
                       <div className="flex flex-col items-start h-full">
-                        <span className="font-semibold mb-2 text-base">{day}</span>
+                        <span className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">{day}</span>
                         {event && (
-                          <span className={`text-xs leading-tight line-clamp-4 text-left ${isSelected ? 'font-bold' : 'font-medium'}`}>
+                          <span className={`text-[10px] sm:text-xs leading-tight line-clamp-3 sm:line-clamp-4 text-left ${isSelected ? 'font-bold' : 'font-medium'}`}>
                             {event.artist}
                           </span>
                         )}

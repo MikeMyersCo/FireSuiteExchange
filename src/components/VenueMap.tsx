@@ -91,7 +91,7 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
           strokeWidth="2"
           rx="5"
         />
-        <text x="500" y="823" textAnchor="middle" fill="white" fontSize="24" fontWeight="bold">
+        <text x="500" y="823" textAnchor="middle" fill="white" fontSize="20" className="text-[16px] sm:text-[20px]" fontWeight="bold">
           STAGE
         </text>
 
@@ -106,7 +106,7 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
           strokeWidth="2"
           rx="5"
         />
-        <text x="500" y="697" textAnchor="middle" fill="#6b7280" fontSize="18" fontWeight="bold">
+        <text x="500" y="697" textAnchor="middle" fill="#6b7280" fontSize="16" className="text-[14px] sm:text-[16px]" fontWeight="bold">
           100's
         </text>
 
@@ -125,7 +125,7 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
             stroke={getStrokeColor('L')}
             strokeWidth={getStrokeWidth('L')}
           />
-          <text x="210" y="550" textAnchor="middle" fill="#000" fontSize="16" fontWeight="bold">
+          <text x="210" y="550" textAnchor="middle" fill="#000" fontSize="14" className="text-[12px] sm:text-[14px]" fontWeight="bold">
             201
           </text>
 
@@ -136,7 +136,7 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
             stroke={getStrokeColor('L')}
             strokeWidth={getStrokeWidth('L')}
           />
-          <text x="320" y="550" textAnchor="middle" fill="#000" fontSize="16" fontWeight="bold">
+          <text x="320" y="550" textAnchor="middle" fill="#000" fontSize="14" className="text-[12px] sm:text-[14px]" fontWeight="bold">
             202
           </text>
 
@@ -147,7 +147,7 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
             stroke={getStrokeColor('L')}
             strokeWidth={getStrokeWidth('L')}
           />
-          <text x="500" y="535" textAnchor="middle" fill="#000" fontSize="20" fontWeight="bold">
+          <text x="500" y="535" textAnchor="middle" fill="#000" fontSize="18" className="text-[16px] sm:text-[18px]" fontWeight="bold">
             203
           </text>
 
@@ -158,7 +158,7 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
             stroke={getStrokeColor('L')}
             strokeWidth={getStrokeWidth('L')}
           />
-          <text x="680" y="550" textAnchor="middle" fill="#000" fontSize="16" fontWeight="bold">
+          <text x="680" y="550" textAnchor="middle" fill="#000" fontSize="14" className="text-[12px] sm:text-[14px]" fontWeight="bold">
             204
           </text>
 
@@ -169,7 +169,7 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
             stroke={getStrokeColor('L')}
             strokeWidth={getStrokeWidth('L')}
           />
-          <text x="790" y="550" textAnchor="middle" fill="#000" fontSize="16" fontWeight="bold">
+          <text x="790" y="550" textAnchor="middle" fill="#000" fontSize="14" className="text-[12px] sm:text-[14px]" fontWeight="bold">
             205
           </text>
         </g>
@@ -229,7 +229,7 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
           <path
             d="M 140 280 L 860 280 L 860 180 L 140 180 Z"
           />
-          <text x="500" y="240" textAnchor="middle" fill="#4b5563" fontSize="24" fontWeight="bold">
+          <text x="500" y="240" textAnchor="middle" fill="#4b5563" fontSize="20" className="text-[16px] sm:text-[20px]" fontWeight="bold">
             LAWN
           </text>
         </g>
@@ -247,7 +247,7 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
             stroke={getStrokeColor('UNT')}
             strokeWidth={getStrokeWidth('UNT')}
           />
-          <text x="265" y="110" textAnchor="middle" fill="#000" fontSize="20" fontWeight="bold">
+          <text x="265" y="110" textAnchor="middle" fill="#000" fontSize="16" className="text-[14px] sm:text-[16px]" fontWeight="bold">
             NORTH TERRACE
           </text>
         </g>
@@ -265,7 +265,7 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
             stroke={getStrokeColor('UST')}
             strokeWidth={getStrokeWidth('UST')}
           />
-          <text x="735" y="110" textAnchor="middle" fill="#000" fontSize="20" fontWeight="bold">
+          <text x="735" y="110" textAnchor="middle" fill="#000" fontSize="16" className="text-[14px] sm:text-[16px]" fontWeight="bold">
             SOUTH TERRACE
           </text>
         </g>
