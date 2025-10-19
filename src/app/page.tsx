@@ -253,7 +253,7 @@ export default function HomePage() {
         <section className="py-4 md:py-6">
           <div className="container mx-auto">
             <h2 className="mb-6 text-center text-heading-lg font-bold text-foreground">
-              Browse by Suite Area
+              Upcoming Concerts
             </h2>
             <div className="grid gap-6 md:grid-cols-3">
               {upcomingShows.map((show, index) => (
