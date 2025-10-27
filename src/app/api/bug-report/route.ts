@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { sendEmail } from '@/lib/notifications/email';
+import { db } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,6 +25,22 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Save bug report to database
+    const bugReport = await db.bugReport.create({
+      data: {
+        title,
+        description,
+        steps: steps || null,
+        userEmail: reporterEmail,
+        userId: session?.user?.id || null,
+        url: url || null,
+        userAgent: userAgent || null,
+        status: 'NEW',
+      },
+    });
+
+    console.log(`✅ Bug report saved to database: ${bugReport.id}`);
 
     // Prepare email content
     const emailHtml = `
@@ -214,42 +231,33 @@ Timestamp: ${new Date().toLocaleString()}
 ${userAgent ? `User Agent: ${userAgent}` : ''}
     `.trim();
 
-    // Send email to suitekeep25@gmail.com
+    // Try to send email to suitekeep25@gmail.com (optional - don't fail if this doesn't work)
     try {
       await sendEmail({
         to: 'suitekeep25@gmail.com',
-        subject: `🐛 Bug Report: ${title}`,
+        subject: `🐛 Bug Report #${bugReport.id.slice(-8)}: ${title}`,
         html: emailHtml,
         text: emailText,
       });
 
       console.log('✅ Bug report email sent successfully');
-
-      return NextResponse.json({
-        success: true,
-        message: 'Bug report submitted successfully',
-      });
     } catch (emailError: any) {
-      console.error('❌ Error sending bug report email:', emailError);
-      console.error('SMTP Config:', {
+      console.warn('⚠️ Could not send bug report email (report still saved to database):', emailError.message);
+      console.warn('SMTP Config:', {
         host: process.env.SMTP_HOST || 'not set',
         port: process.env.SMTP_PORT || 'not set',
         hasUser: !!process.env.SMTP_USER,
         hasPassword: !!process.env.SMTP_PASSWORD,
       });
-
-      // Return detailed error in development, generic in production
-      const isDev = process.env.NODE_ENV === 'development';
-      return NextResponse.json(
-        {
-          error: isDev
-            ? `Email error: ${emailError.message}. Check SMTP configuration.`
-            : 'Failed to submit bug report. Email service not configured.',
-          details: isDev ? emailError.message : undefined,
-        },
-        { status: 500 }
-      );
+      // Don't fail the request - bug report is already saved to database
     }
+
+    // Return success (bug report was saved even if email failed)
+    return NextResponse.json({
+      success: true,
+      message: 'Bug report submitted successfully',
+      id: bugReport.id,
+    });
   } catch (error: any) {
     console.error('❌ Error processing bug report:', error);
     return NextResponse.json(

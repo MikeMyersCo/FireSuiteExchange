@@ -284,3 +284,25 @@ model DiscussionReply {
   @@index([createdAt])
   @@map("discussion_replies")
 }
+
+model BugReport {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  steps       String?  @db.Text
+  userEmail   String   @map("user_email")
+  userId      String?  @map("user_id")
+  url         String?
+  userAgent   String?  @map("user_agent")
+  status      String   @default("NEW") // NEW, IN_PROGRESS, RESOLVED, CLOSED
+  isResolved  Boolean  @default(false) @map("is_resolved")
+  resolvedAt  DateTime? @map("resolved_at")
+  adminNotes  String?  @map("admin_notes") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([userEmail])
+  @@index([status])
+  @@index([createdAt])
+  @@map("bug_reports")
+}
