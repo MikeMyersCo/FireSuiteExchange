@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import AuthSessionProvider from '@/components/providers/session-provider';
+import { BugReportButton } from '@/components/BugReportButton';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
             </p>
           </div>
           <div className="min-h-screen bg-background">{children}</div>
+          <BugReportButton />
           <Toaster />
         </AuthSessionProvider>
       </body>
