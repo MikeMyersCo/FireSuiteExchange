@@ -22,6 +22,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <AuthSessionProvider>
+          {/* Demo Notice Banner */}
+          <div className="sticky top-0 z-[100] bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 px-4 py-2 text-center shadow-lg">
+            <p className="text-sm font-bold text-white drop-shadow-md">
+              ⚠️ DEMO SITE ONLY - This is not real data and should not be used for any transactions ⚠️
+            </p>
+          </div>
           <div className="min-h-screen bg-background">{children}</div>
           <Toaster />
         </AuthSessionProvider>
