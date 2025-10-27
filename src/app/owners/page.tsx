@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MessageSquare, Users, Plus, Eye, MessageCircle, Clock, Pin, Lock, Search, Sparkles, Mail, Phone, Home, ArrowLeft } from 'lucide-react';
+import { MessageSquare, Users, Plus, Eye, MessageCircle, Clock, Pin, Lock, Search, Sparkles, Mail, Phone, Home, ArrowLeft, Grid3x3, List, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
@@ -64,6 +64,9 @@ export default function OwnersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
+  const [sortBy, setSortBy] = useState<'name' | 'suite'>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   const [newDiscussion, setNewDiscussion] = useState({
     title: '',
@@ -190,6 +193,39 @@ export default function OwnersPage() {
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString();
+  };
+
+  const getLastName = (fullName: string | null): string => {
+    if (!fullName) return '';
+    const parts = fullName.trim().split(' ');
+    return parts[parts.length - 1];
+  };
+
+  const getSortedOwners = () => {
+    const sorted = [...owners].sort((a, b) => {
+      if (sortBy === 'name') {
+        const lastNameA = getLastName(a.name);
+        const lastNameB = getLastName(b.name);
+        return sortOrder === 'asc'
+          ? lastNameA.localeCompare(lastNameB)
+          : lastNameB.localeCompare(lastNameA);
+      } else {
+        // Sort by suite number - use first suite for comparison
+        const suiteA = a.suites[0]?.number || 0;
+        const suiteB = b.suites[0]?.number || 0;
+        return sortOrder === 'asc' ? suiteA - suiteB : suiteB - suiteA;
+      }
+    });
+    return sorted;
+  };
+
+  const toggleSort = (column: 'name' | 'suite') => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
   };
 
   if (status === 'loading' || isLoading) {
@@ -455,15 +491,41 @@ export default function OwnersPage() {
 
           {/* Directory Tab */}
           <TabsContent value="directory" className="space-y-6">
-            <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold mb-2">Verified Suite Owners</h2>
-              <p className="text-muted-foreground">
-                Connect with {owners.length} fellow suite owners in our community
-              </p>
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+              <div className="text-center sm:text-left">
+                <h2 className="text-2xl font-bold mb-2">Verified Suite Owners</h2>
+                <p className="text-muted-foreground">
+                  Connect with {owners.length} fellow suite owners in our community
+                </p>
+              </div>
+
+              {/* View Toggle */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={viewMode === 'card' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('card')}
+                  className="gap-2"
+                >
+                  <Grid3x3 className="w-4 h-4" />
+                  Cards
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="gap-2"
+                >
+                  <List className="w-4 h-4" />
+                  List
+                </Button>
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {owners.map((owner) => (
+            {/* Card View */}
+            {viewMode === 'card' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {getSortedOwners().map((owner) => (
                 <Card
                   key={owner.id}
                   className="p-6 hover:shadow-card-elevated transition-all duration-300 hover:scale-105 group"
@@ -522,7 +584,110 @@ export default function OwnersPage() {
                   </div>
                 </Card>
               ))}
-            </div>
+              </div>
+            )}
+
+            {/* List View */}
+            {viewMode === 'list' && (
+              <Card className="overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-muted/50 border-b">
+                      <tr>
+                        <th className="px-6 py-4 text-left">
+                          <button
+                            onClick={() => toggleSort('name')}
+                            className="flex items-center gap-2 font-semibold text-sm hover:text-primary transition-colors group"
+                          >
+                            Name
+                            {sortBy === 'name' ? (
+                              sortOrder === 'asc' ? (
+                                <ArrowUp className="w-4 h-4 text-primary" />
+                              ) : (
+                                <ArrowDown className="w-4 h-4 text-primary" />
+                              )
+                            ) : (
+                              <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" />
+                            )}
+                          </button>
+                        </th>
+                        <th className="px-6 py-4 text-left">
+                          <button
+                            onClick={() => toggleSort('suite')}
+                            className="flex items-center gap-2 font-semibold text-sm hover:text-primary transition-colors group"
+                          >
+                            Suite(s)
+                            {sortBy === 'suite' ? (
+                              sortOrder === 'asc' ? (
+                                <ArrowUp className="w-4 h-4 text-primary" />
+                              ) : (
+                                <ArrowDown className="w-4 h-4 text-primary" />
+                              )
+                            ) : (
+                              <ArrowUpDown className="w-4 h-4 opacity-0 group-hover:opacity-50 transition-opacity" />
+                            )}
+                          </button>
+                        </th>
+                        <th className="px-6 py-4 text-left font-semibold text-sm">Role</th>
+                        <th className="px-6 py-4 text-left font-semibold text-sm">Contact</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      {getSortedOwners().map((owner) => (
+                        <tr key={owner.id} className="hover:bg-muted/30 transition-colors group">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="h-10 w-10 bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold shrink-0">
+                                {owner.name?.charAt(0).toUpperCase() || 'A'}
+                              </Avatar>
+                              <span className="font-medium group-hover:text-primary transition-colors">
+                                {owner.name || 'Anonymous Owner'}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-wrap gap-2">
+                              {owner.suites.map((suite, idx) => (
+                                <Badge key={idx} variant="secondary" className="font-mono">
+                                  {suite.displayName}
+                                </Badge>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4">
+                            <Badge variant={owner.role === 'ADMIN' ? 'default' : 'secondary'}>
+                              {owner.role}
+                            </Badge>
+                          </td>
+                          <td className="px-6 py-4">
+                            <div className="flex flex-col gap-2">
+                              <a
+                                href={`mailto:${owner.email}`}
+                                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <Mail className="w-4 h-4 shrink-0" />
+                                <span className="truncate max-w-xs">{owner.email}</span>
+                              </a>
+                              {owner.phone && (
+                                <a
+                                  href={`tel:${owner.phone}`}
+                                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <Phone className="w-4 h-4 shrink-0" />
+                                  {owner.phone}
+                                </a>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
+            )}
 
             {owners.length === 0 && (
               <Card className="p-12 text-center">
