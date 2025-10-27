@@ -2,6 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import EventsCalendar from '@/components/EventsCalendar';
 import VenueMap from '@/components/VenueMap';
@@ -42,6 +43,7 @@ function formatSuiteArea(area: string): string {
 
 function BrowseContent() {
   const searchParams = useSearchParams();
+  const { data: session } = useSession();
   const [listings, setListings] = useState<ListingData[]>([]);
   const [allListings, setAllListings] = useState<ListingData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,10 +52,30 @@ function BrowseContent() {
   const [selectedSuiteArea, setSelectedSuiteArea] = useState<string | null>(null);
   const [showVerifiedModal, setShowVerifiedModal] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [hasVerifiedSuites, setHasVerifiedSuites] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Check if user has verified suites
+  useEffect(() => {
+    async function checkVerifiedSuites() {
+      if (!session?.user) return;
+
+      try {
+        const response = await fetch('/api/applications/my-applications');
+        const data = await response.json();
+        if (data.success) {
+          const verifiedSuites = data.applications.filter((app: any) => app.status === 'APPROVED');
+          setHasVerifiedSuites(verifiedSuites.length > 0);
+        }
+      } catch (error) {
+        console.error('Error checking verified suites:', error);
+      }
+    }
+    checkVerifiedSuites();
+  }, [session]);
 
   useEffect(() => {
     fetchListings();
@@ -146,8 +168,8 @@ function BrowseContent() {
             <Link href="/browse" className="text-sm font-medium text-accent-foreground">
               Browse Listings
             </Link>
-            <Link href="/apply-seller" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
-              Become a Seller
+            <Link href="/verify-suite" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
+              {hasVerifiedSuites ? 'Add Additional Suites' : 'Become a Seller'}
             </Link>
             <Link
               href="/login"
@@ -206,11 +228,11 @@ function BrowseContent() {
             Browse Listings
           </Link>
           <Link
-            href="/apply-seller"
+            href="/verify-suite"
             className="rounded-lg px-4 py-3 text-sm font-medium text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground"
             onClick={() => setMobileMenuOpen(false)}
           >
-            Become a Seller
+            {hasVerifiedSuites ? 'Add Additional Suites' : 'Become a Seller'}
           </Link>
           <Link
             href="/login"
@@ -394,10 +416,10 @@ function BrowseContent() {
                   There are currently no tickets available. Check back soon or become a seller to list your tickets.
                 </p>
                 <Link
-                  href="/apply-seller"
+                  href="/verify-suite"
                   className="inline-flex h-12 items-center justify-center rounded-xl border-2 border-foreground bg-primary px-8 text-base font-semibold text-foreground transition-all hover:bg-primary-600 active:scale-[0.98]"
                 >
-                  Become a Seller
+                  {hasVerifiedSuites ? 'Add Additional Suites' : 'Become a Seller'}
                 </Link>
               </div>
             )}

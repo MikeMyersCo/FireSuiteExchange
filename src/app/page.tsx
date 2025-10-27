@@ -16,6 +16,7 @@ export default function HomePage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [upcomingShows, setUpcomingShows] = useState<UpcomingShow[]>([]);
   const [pendingCount, setPendingCount] = useState<number>(0);
+  const [hasVerifiedSuites, setHasVerifiedSuites] = useState(false);
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -101,6 +102,25 @@ export default function HomePage() {
     fetchPendingCount();
   }, [session]);
 
+  // Check if user has verified suites
+  useEffect(() => {
+    async function checkVerifiedSuites() {
+      if (!session?.user) return;
+
+      try {
+        const response = await fetch('/api/applications/my-applications');
+        const data = await response.json();
+        if (data.success) {
+          const verifiedSuites = data.applications.filter((app: any) => app.status === 'APPROVED');
+          setHasVerifiedSuites(verifiedSuites.length > 0);
+        }
+      } catch (error) {
+        console.error('Error checking verified suites:', error);
+      }
+    }
+    checkVerifiedSuites();
+  }, [session]);
+
   return (
     <div className="flex min-h-screen flex-col">
       {/* Header - Dark teal bar like Wispr Flow */}
@@ -121,7 +141,7 @@ export default function HomePage() {
               </Link>
             )}
             <Link href="/verify-suite" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
-              Become a Seller
+              {hasVerifiedSuites ? 'Add Additional Suites' : 'Become a Seller'}
             </Link>
             {(session?.user?.role as string) === 'APPROVER' || (session?.user?.role as string) === 'ADMIN' ? (
               <Link href="/approver/applications" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground relative inline-flex items-center gap-2">
@@ -210,7 +230,7 @@ export default function HomePage() {
             className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             onClick={() => setMobileMenuOpen(false)}
           >
-            Become a Seller
+            {hasVerifiedSuites ? 'Add Additional Suites' : 'Become a Seller'}
           </Link>
           {(session?.user?.role as string) === 'APPROVER' || (session?.user?.role as string) === 'ADMIN' ? (
             <Link
