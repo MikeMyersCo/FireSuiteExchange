@@ -74,6 +74,7 @@ export async function GET(request: NextRequest) {
         listingId: listing.id,
         eventTitle: listing.eventTitle,
         eventDatetime: listing.eventDatetime.toISOString(),
+        createdAt: listing.createdAt.toISOString(),
         quantity: listing.quantity,
         pricePerSeat: listing.pricePerSeat.toString(),
         deliveryMethod: listing.deliveryMethod,

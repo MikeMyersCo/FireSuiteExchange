@@ -11,6 +11,7 @@ interface ListingData {
   listingId: string;
   eventTitle: string;
   eventDatetime: string;
+  createdAt: string;
   quantity: number;
   pricePerSeat: string;
   deliveryMethod: string;
@@ -268,7 +269,7 @@ function BrowseContent() {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {listings.map((listing) => {
               const viewCount = Math.floor(Math.random() * 50) + 10;
-              const isNew = new Date().getTime() - new Date(listing.eventDatetime).getTime() < 72 * 60 * 60 * 1000;
+              const isNew = new Date().getTime() - new Date(listing.createdAt).getTime() < 48 * 60 * 60 * 1000;
               return (
               <div key={listing.listingId} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card-subtle transition-all duration-300 hover:scale-[1.02] hover:shadow-card-elevated">
                 <div className={`px-3 py-2 text-center ${listing.suiteArea === 'L' ? 'bg-gradient-to-r from-green-100 to-green-50' : 'bg-gradient-to-r from-yellow-100 to-yellow-50'}`}>
