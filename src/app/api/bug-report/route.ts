@@ -215,21 +215,48 @@ ${userAgent ? `User Agent: ${userAgent}` : ''}
     `.trim();
 
     // Send email to suitekeep25@gmail.com
-    await sendEmail({
-      to: 'suitekeep25@gmail.com',
-      subject: `🐛 Bug Report: ${title}`,
-      html: emailHtml,
-      text: emailText,
-    });
+    try {
+      await sendEmail({
+        to: 'suitekeep25@gmail.com',
+        subject: `🐛 Bug Report: ${title}`,
+        html: emailHtml,
+        text: emailText,
+      });
 
-    return NextResponse.json({
-      success: true,
-      message: 'Bug report submitted successfully',
-    });
-  } catch (error) {
-    console.error('Error submitting bug report:', error);
+      console.log('✅ Bug report email sent successfully');
+
+      return NextResponse.json({
+        success: true,
+        message: 'Bug report submitted successfully',
+      });
+    } catch (emailError: any) {
+      console.error('❌ Error sending bug report email:', emailError);
+      console.error('SMTP Config:', {
+        host: process.env.SMTP_HOST || 'not set',
+        port: process.env.SMTP_PORT || 'not set',
+        hasUser: !!process.env.SMTP_USER,
+        hasPassword: !!process.env.SMTP_PASSWORD,
+      });
+
+      // Return detailed error in development, generic in production
+      const isDev = process.env.NODE_ENV === 'development';
+      return NextResponse.json(
+        {
+          error: isDev
+            ? `Email error: ${emailError.message}. Check SMTP configuration.`
+            : 'Failed to submit bug report. Email service not configured.',
+          details: isDev ? emailError.message : undefined,
+        },
+        { status: 500 }
+      );
+    }
+  } catch (error: any) {
+    console.error('❌ Error processing bug report:', error);
     return NextResponse.json(
-      { error: 'Failed to submit bug report' },
+      {
+        error: 'Failed to submit bug report',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      },
       { status: 500 }
     );
   }
