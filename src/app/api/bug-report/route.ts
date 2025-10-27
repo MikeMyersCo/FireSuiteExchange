@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/auth';
 import { sendEmail } from '@/lib/notifications/email';
+import { sendEmailViaResend } from '@/lib/notifications/resend';
 import { db } from '@/lib/db';
 
 export async function POST(request: NextRequest) {
@@ -233,22 +234,28 @@ ${userAgent ? `User Agent: ${userAgent}` : ''}
 
     // Try to send email to suitekeep25@gmail.com (optional - don't fail if this doesn't work)
     try {
-      await sendEmail({
-        to: 'suitekeep25@gmail.com',
-        subject: `🐛 Bug Report #${bugReport.id.slice(-8)}: ${title}`,
-        html: emailHtml,
-        text: emailText,
-      });
-
-      console.log('✅ Bug report email sent successfully');
+      // Try Resend first (if configured), fall back to SMTP
+      if (process.env.RESEND_API_KEY) {
+        await sendEmailViaResend({
+          to: 'suitekeep25@gmail.com',
+          subject: `🐛 Bug Report #${bugReport.id.slice(-8)}: ${title}`,
+          html: emailHtml,
+          text: emailText,
+        });
+        console.log('✅ Bug report email sent via Resend');
+      } else if (process.env.SMTP_HOST) {
+        await sendEmail({
+          to: 'suitekeep25@gmail.com',
+          subject: `🐛 Bug Report #${bugReport.id.slice(-8)}: ${title}`,
+          html: emailHtml,
+          text: emailText,
+        });
+        console.log('✅ Bug report email sent via SMTP');
+      } else {
+        console.warn('⚠️ No email service configured (Resend or SMTP)');
+      }
     } catch (emailError: any) {
       console.warn('⚠️ Could not send bug report email (report still saved to database):', emailError.message);
-      console.warn('SMTP Config:', {
-        host: process.env.SMTP_HOST || 'not set',
-        port: process.env.SMTP_PORT || 'not set',
-        hasUser: !!process.env.SMTP_USER,
-        hasPassword: !!process.env.SMTP_PASSWORD,
-      });
       // Don't fail the request - bug report is already saved to database
     }
 
