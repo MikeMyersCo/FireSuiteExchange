@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SUITE_DATA, formatSuiteName } from '@/lib/constants';
+import { createPortal } from 'react-dom';
 
 export default function VerifySuitePage() {
   const { data: session, status } = useSession();
@@ -12,6 +13,8 @@ export default function VerifySuitePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [verifiedSuites, setVerifiedSuites] = useState<any[]>([]);
   const [pendingSuites, setPendingSuites] = useState<any[]>([]);
 
@@ -22,6 +25,10 @@ export default function VerifySuitePage() {
     message: '',
   });
   const [files, setFiles] = useState<File[]>([]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
@@ -111,7 +118,8 @@ export default function VerifySuitePage() {
         throw new Error(data.error || 'Failed to submit application');
       }
 
-      setSuccess('Application submitted successfully! We will review your ownership verification and notify you via email.');
+      // Show success modal instead of inline message
+      setShowSuccessModal(true);
 
       // Reset form
       setFormData({
@@ -247,12 +255,6 @@ export default function VerifySuitePage() {
           {error && (
             <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
               {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="mb-6 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-              {success}
             </div>
           )}
 
@@ -476,6 +478,106 @@ export default function VerifySuitePage() {
           </div>
         </div>
       </footer>
+
+      {/* Success Modal */}
+      {mounted && showSuccessModal && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4"
+          onClick={() => setShowSuccessModal(false)}
+        >
+          <div
+            className="relative w-full max-w-lg rounded-2xl border-2 border-green-500 bg-card p-6 sm:p-8 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Success Icon */}
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                <svg className="h-10 w-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-foreground mb-2">
+                Application Submitted Successfully! 🎉
+              </h3>
+              <p className="text-foreground/70">
+                Thank you for applying to become a verified Fire Suite seller.
+              </p>
+            </div>
+
+            {/* What Happens Next */}
+            <div className="space-y-4 mb-6">
+              <div className="rounded-xl bg-primary/10 border border-primary/20 p-4">
+                <h4 className="font-bold text-foreground mb-3 flex items-center gap-2">
+                  <svg className="h-5 w-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  What Happens Next?
+                </h4>
+                <ol className="space-y-2 text-sm text-foreground/80">
+                  <li className="flex gap-2">
+                    <span className="font-bold text-primary">1.</span>
+                    <span>Our admin team will review your application within 24-48 hours</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="font-bold text-primary">2.</span>
+                    <span>We may contact you via email if we need additional verification documents</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="font-bold text-primary">3.</span>
+                    <span>Once approved, you'll receive a confirmation email and can start listing tickets</span>
+                  </li>
+                  <li className="flex gap-2">
+                    <span className="font-bold text-primary">4.</span>
+                    <span>Your application status will update to "Verified" on this page</span>
+                  </li>
+                </ol>
+              </div>
+
+              {/* Current Status */}
+              <div className="rounded-xl bg-amber-50 border border-amber-200 p-4">
+                <div className="flex items-start gap-3">
+                  <svg className="h-6 w-6 flex-shrink-0 text-amber-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <h4 className="font-semibold text-amber-900 mb-1">Current Status: Pending Verification</h4>
+                    <p className="text-sm text-amber-800">
+                      You'll see your suite listed in the "Pending Verification" section above while we review your application.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Check Email */}
+              <div className="rounded-xl bg-blue-50 border border-blue-200 p-4">
+                <div className="flex items-start gap-3">
+                  <svg className="h-6 w-6 flex-shrink-0 text-blue-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                  </svg>
+                  <div>
+                    <h4 className="font-semibold text-blue-900 mb-1">Check Your Email</h4>
+                    <p className="text-sm text-blue-800">
+                      We've sent a confirmation email to <strong>{session?.user?.email}</strong>. Please check your inbox (and spam folder) for updates.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowSuccessModal(false)}
+                className="flex-1 rounded-lg border-2 border-foreground bg-primary px-6 py-3 font-semibold text-foreground transition-all hover:bg-primary-600"
+              >
+                Got it, thanks!
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
