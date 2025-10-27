@@ -15,8 +15,12 @@ export async function sendEmailViaResend(options: ResendEmailOptions): Promise<v
   }
 
   try {
+    // Use onboarding@resend.dev for testing if no custom domain is set up
+    // This works without domain verification
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'Fire Suite Exchange <onboarding@resend.dev>';
+
     const { data, error } = await resend.emails.send({
-      from: 'Fire Suite Exchange <noreply@updates.firesuite.com>',
+      from: fromEmail,
       to: options.to,
       subject: options.subject,
       html: options.html,
