@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import EventsCalendar from '@/components/EventsCalendar';
 import VenueMap from '@/components/VenueMap';
@@ -53,6 +53,7 @@ function BrowseContent() {
   const [showVerifiedModal, setShowVerifiedModal] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [hasVerifiedSuites, setHasVerifiedSuites] = useState(false);
+  const [pendingCount, setPendingCount] = useState<number>(0);
 
   useEffect(() => {
     setMounted(true);
@@ -75,6 +76,27 @@ function BrowseContent() {
       }
     }
     checkVerifiedSuites();
+  }, [session]);
+
+  // Fetch pending applications count for approvers/admins
+  useEffect(() => {
+    async function fetchPendingCount() {
+      if (!session?.user) return;
+
+      const role = session.user.role as string;
+      if (role !== 'APPROVER' && role !== 'ADMIN') return;
+
+      try {
+        const response = await fetch('/api/applications/pending-count');
+        const data = await response.json();
+        if (data.success) {
+          setPendingCount(data.count);
+        }
+      } catch (error) {
+        console.error('Error fetching pending count:', error);
+      }
+    }
+    fetchPendingCount();
   }, [session]);
 
   useEffect(() => {
@@ -168,15 +190,44 @@ function BrowseContent() {
             <Link href="/browse" className="text-sm font-medium text-accent-foreground">
               Browse Listings
             </Link>
+            {session && (session?.user?.role as string) !== 'GUEST' && (
+              <Link href="/owners" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
+                Owners Lounge
+              </Link>
+            )}
             <Link href="/verify-suite" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
               {hasVerifiedSuites ? 'Add Additional Suites' : 'Become a Seller'}
             </Link>
-            <Link
-              href="/login"
-              className="rounded-xl border-2 border-accent-foreground bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-600"
-            >
-              Login
-            </Link>
+            {(session?.user?.role as string) === 'APPROVER' || (session?.user?.role as string) === 'ADMIN' ? (
+              <Link href="/approver/applications" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground relative inline-flex items-center gap-2">
+                Review Applications
+                {pendingCount > 0 && (
+                  <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                    {pendingCount}
+                  </span>
+                )}
+              </Link>
+            ) : null}
+            {session ? (
+              <>
+                <Link href="/profile" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
+                  Profile
+                </Link>
+                <button
+                  onClick={() => signOut({ callbackUrl: '/' })}
+                  className="rounded-xl border-2 border-accent-foreground bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-600"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link
+                href="/login"
+                className="rounded-xl border-2 border-accent-foreground bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-600"
+              >
+                Login
+              </Link>
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
@@ -215,32 +266,76 @@ function BrowseContent() {
         <nav className="container mx-auto flex flex-col gap-1 py-4">
           <Link
             href="/"
-            className="rounded-lg px-4 py-3 text-sm font-medium text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground"
+            className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             onClick={() => setMobileMenuOpen(false)}
           >
             Home
           </Link>
           <Link
             href="/browse"
-            className="rounded-lg px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+            className="rounded-lg px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-muted"
             onClick={() => setMobileMenuOpen(false)}
           >
             Browse Listings
           </Link>
+          {session && (session?.user?.role as string) !== 'GUEST' && (
+            <Link
+              href="/owners"
+              className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Owners Lounge
+            </Link>
+          )}
           <Link
             href="/verify-suite"
-            className="rounded-lg px-4 py-3 text-sm font-medium text-foreground/70 transition-colors hover:bg-secondary hover:text-foreground"
+            className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             onClick={() => setMobileMenuOpen(false)}
           >
             {hasVerifiedSuites ? 'Add Additional Suites' : 'Become a Seller'}
           </Link>
-          <Link
-            href="/login"
-            className="mt-2 rounded-xl border-2 border-foreground bg-primary px-4 py-3 text-center text-sm font-semibold text-foreground transition-all hover:bg-primary-600"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Login
-          </Link>
+          {(session?.user?.role as string) === 'APPROVER' || (session?.user?.role as string) === 'ADMIN' ? (
+            <Link
+              href="/approver/applications"
+              className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground flex items-center justify-between"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span>Review Applications</span>
+              {pendingCount > 0 && (
+                <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                  {pendingCount}
+                </span>
+              )}
+            </Link>
+          ) : null}
+          {session ? (
+            <>
+              <Link
+                href="/profile"
+                className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Profile
+              </Link>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  signOut({ callbackUrl: '/' });
+                }}
+                className="mt-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-600"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              className="mt-2 rounded-xl bg-primary px-4 py-3 text-center text-sm font-semibold text-primary-foreground shadow-md transition-all hover:bg-primary-600"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              Login
+            </Link>
+          )}
         </nav>
       </div>
 
