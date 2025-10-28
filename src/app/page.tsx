@@ -135,6 +135,11 @@ export default function HomePage() {
             <Link href="/browse" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
               Browse Listings
             </Link>
+            {session && ((session?.user?.role as string) === 'SELLER' || (session?.user?.role as string) === 'ADMIN') && (
+              <Link href="/sell/my-listings" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
+                My Listings
+              </Link>
+            )}
             {session && (session?.user?.role as string) !== 'GUEST' && (
               <Link href="/owners" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
                 Owners Lounge
@@ -216,6 +221,15 @@ export default function HomePage() {
           >
             Browse Listings
           </Link>
+          {session && ((session?.user?.role as string) === 'SELLER' || (session?.user?.role as string) === 'ADMIN') && (
+            <Link
+              href="/sell/my-listings"
+              className="rounded-lg px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              My Listings
+            </Link>
+          )}
           {session && (session?.user?.role as string) !== 'GUEST' && (
             <Link
               href="/owners"

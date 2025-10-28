@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useToast } from '@/hooks/use-toast';
 
 export const dynamic = 'force-dynamic';
 
@@ -28,12 +29,21 @@ interface Listing {
 export default function MyListingsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { toast } = useToast();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [sellingTickets, setSellingTickets] = useState<string | null>(null);
   const [ticketQuantities, setTicketQuantities] = useState<Record<string, string>>({});
+
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'SOLD'>('ALL');
+  const [sortBy, setSortBy] = useState<'date' | 'price' | 'recent'>('date');
+
+  // Track original quantities for revenue calculation
+  const [originalQuantities, setOriginalQuantities] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -53,6 +63,13 @@ export default function MyListingsPage() {
 
       if (data.success) {
         setListings(data.listings);
+
+        // Store original quantities on first load for revenue tracking
+        const quantities: Record<string, number> = {};
+        data.listings.forEach((listing: Listing) => {
+          quantities[listing.id] = listing.quantity;
+        });
+        setOriginalQuantities(quantities);
       } else {
         setError('Failed to load your listings');
       }
@@ -68,22 +85,30 @@ export default function MyListingsPage() {
     const quantityToSell = ticketQuantities[listingId];
 
     if (!quantityToSell || quantityToSell.trim() === '') {
-      setError('Please enter the number of tickets sold');
+      toast({
+        title: "Quantity Required",
+        description: "Please enter the number of tickets sold",
+        variant: "destructive",
+      });
       return;
     }
 
     const qty = parseInt(quantityToSell);
     if (isNaN(qty) || qty <= 0) {
-      setError('Please enter a valid positive number');
+      toast({
+        title: "Invalid Quantity",
+        description: "Please enter a valid positive number",
+        variant: "destructive",
+      });
       return;
     }
 
     if (qty > availableQuantity) {
-      setError(`Cannot sell ${qty} tickets. Only ${availableQuantity} available.`);
-      return;
-    }
-
-    if (!confirm(`Mark ${qty} ticket(s) as sold?`)) {
+      toast({
+        title: "Insufficient Tickets",
+        description: `Cannot sell ${qty} tickets. Only ${availableQuantity} available.`,
+        variant: "destructive",
+      });
       return;
     }
 
@@ -117,24 +142,35 @@ export default function MyListingsPage() {
         );
         // Clear the input
         setTicketQuantities(prev => ({ ...prev, [listingId]: '' }));
-        // Show success message briefly
-        alert(data.message);
+
+        // Show success toast
+        const remainingTickets = data.listing.quantity;
+        toast({
+          title: "✅ Tickets Sold!",
+          description: remainingTickets > 0
+            ? `Marked ${qty} ticket(s) as sold. ${remainingTickets} remaining.`
+            : `All tickets sold! Listing marked as SOLD.`,
+        });
       } else {
-        setError(data.error || 'Failed to sell tickets');
+        toast({
+          title: "Sale Failed",
+          description: data.error || 'Failed to sell tickets',
+          variant: "destructive",
+        });
       }
     } catch (err) {
       console.error('Failed to sell tickets:', err);
-      setError('Failed to sell tickets');
+      toast({
+        title: "Error",
+        description: 'Failed to sell tickets. Please try again.',
+        variant: "destructive",
+      });
     } finally {
       setSellingTickets(null);
     }
   };
 
   const handleMarkAllAsSold = async (listingId: string, quantity: number) => {
-    if (!confirm(`Mark all ${quantity} ticket(s) as sold?`)) {
-      return;
-    }
-
     setUpdatingStatus(listingId);
     setError('');
 
@@ -163,12 +199,25 @@ export default function MyListingsPage() {
               : listing
           )
         );
+
+        toast({
+          title: "🎉 All Tickets Sold!",
+          description: `Marked all ${quantity} ticket(s) as sold. Listing is now complete.`,
+        });
       } else {
-        setError(data.error || 'Failed to mark listing as sold');
+        toast({
+          title: "Update Failed",
+          description: data.error || 'Failed to mark listing as sold',
+          variant: "destructive",
+        });
       }
     } catch (err) {
       console.error('Failed to mark listing as sold:', err);
-      setError('Failed to mark listing as sold');
+      toast({
+        title: "Error",
+        description: 'Failed to mark listing as sold. Please try again.',
+        variant: "destructive",
+      });
     } finally {
       setUpdatingStatus(null);
     }
@@ -178,17 +227,21 @@ export default function MyListingsPage() {
     const quantityToRestore = ticketQuantities[listingId];
 
     if (!quantityToRestore || quantityToRestore.trim() === '') {
-      setError('Please enter the number of tickets available');
+      toast({
+        title: "Quantity Required",
+        description: "Please enter the number of tickets available",
+        variant: "destructive",
+      });
       return;
     }
 
     const qty = parseInt(quantityToRestore);
     if (isNaN(qty) || qty <= 0) {
-      setError('Please enter a valid positive number');
-      return;
-    }
-
-    if (!confirm(`Mark this listing as available with ${qty} ticket(s)?`)) {
+      toast({
+        title: "Invalid Quantity",
+        description: "Please enter a valid positive number",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -220,14 +273,31 @@ export default function MyListingsPage() {
               : listing
           )
         );
+
+        // Reset original quantity to the new available quantity
+        setOriginalQuantities(prev => ({ ...prev, [listingId]: qty }));
+
         // Clear the input
         setTicketQuantities(prev => ({ ...prev, [listingId]: '' }));
+
+        toast({
+          title: "✅ Listing Reactivated!",
+          description: `Listing marked as available with ${qty} ticket(s).`,
+        });
       } else {
-        setError(data.error || 'Failed to update listing status');
+        toast({
+          title: "Update Failed",
+          description: data.error || 'Failed to update listing status',
+          variant: "destructive",
+        });
       }
     } catch (err) {
       console.error('Failed to update listing status:', err);
-      setError('Failed to update listing status');
+      toast({
+        title: "Error",
+        description: 'Failed to update listing status. Please try again.',
+        variant: "destructive",
+      });
     } finally {
       setUpdatingStatus(null);
     }
@@ -257,9 +327,65 @@ export default function MyListingsPage() {
     );
   }
 
+  // Calculate stats
   const activeListings = listings.filter(l => l.status === 'ACTIVE');
   const soldListings = listings.filter(l => l.status === 'SOLD');
   const otherListings = listings.filter(l => l.status !== 'ACTIVE' && l.status !== 'SOLD');
+
+  const totalActiveValue = activeListings.reduce((sum, l) => sum + (parseFloat(l.pricePerSeat) * l.quantity), 0);
+
+  // Calculate revenue from sold tickets (including partial sales)
+  const totalRevenue = listings.reduce((sum, listing) => {
+    const originalQty = originalQuantities[listing.id] || listing.quantity;
+    const currentQty = listing.quantity;
+    const soldQty = originalQty - currentQty;
+
+    // For fully sold listings, use original quantity
+    if (listing.status === 'SOLD') {
+      return sum + (parseFloat(listing.pricePerSeat) * originalQty);
+    }
+
+    // For active listings with partial sales
+    if (soldQty > 0) {
+      return sum + (parseFloat(listing.pricePerSeat) * soldQty);
+    }
+
+    return sum;
+  }, 0);
+
+  const avgPrice = listings.length > 0
+    ? listings.reduce((sum, l) => sum + parseFloat(l.pricePerSeat), 0) / listings.length
+    : 0;
+
+  // Filter and search listings
+  const filteredListings = listings.filter(listing => {
+    // Search filter
+    const matchesSearch = listing.eventTitle.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Status filter
+    const matchesStatus = statusFilter === 'ALL' || listing.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  // Sort listings
+  const sortedListings = [...filteredListings].sort((a, b) => {
+    switch (sortBy) {
+      case 'date':
+        return new Date(a.eventDatetime).getTime() - new Date(b.eventDatetime).getTime();
+      case 'price':
+        return parseFloat(b.pricePerSeat) - parseFloat(a.pricePerSeat);
+      case 'recent':
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      default:
+        return 0;
+    }
+  });
+
+  // Separate into categories after filtering/sorting
+  const filteredActive = sortedListings.filter(l => l.status === 'ACTIVE');
+  const filteredSold = sortedListings.filter(l => l.status === 'SOLD');
+  const filteredOther = sortedListings.filter(l => l.status !== 'ACTIVE' && l.status !== 'SOLD');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -309,14 +435,182 @@ export default function MyListingsPage() {
             </div>
           )}
 
+          {/* Dashboard Stats Overview */}
+          <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Active Listings</p>
+                  <p className="text-3xl font-bold text-blue-600 mt-1">{activeListings.length}</p>
+                </div>
+                <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Sold</p>
+                  <p className="text-3xl font-bold text-green-600 mt-1">{soldListings.length}</p>
+                </div>
+                <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Potential Value</p>
+                  <p className="text-3xl font-bold text-purple-600 mt-1">${totalActiveValue.toLocaleString()}</p>
+                </div>
+                <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Revenue</p>
+                  <p className="text-3xl font-bold text-emerald-600 mt-1">${totalRevenue.toLocaleString()}</p>
+                </div>
+                <div className="h-12 w-12 bg-emerald-100 rounded-full flex items-center justify-center">
+                  <svg className="h-6 w-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-md p-5 border border-gray-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Avg Price</p>
+                  <p className="text-3xl font-bold text-orange-600 mt-1">${avgPrice.toFixed(0)}</p>
+                  <p className="text-xs text-gray-500 mt-1">per seat</p>
+                </div>
+                <div className="h-12 w-12 bg-orange-100 rounded-full flex items-center justify-center">
+                  <svg className="h-6 w-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Search and Filter Controls */}
+          <div className="mb-6 bg-white rounded-xl shadow-md p-4 border border-gray-200">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search Bar */}
+              <div className="flex-1">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by artist name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <svg
+                    className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Status Filter */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setStatusFilter('ALL')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    statusFilter === 'ALL'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  All ({listings.length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter('ACTIVE')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    statusFilter === 'ACTIVE'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Active ({activeListings.length})
+                </button>
+                <button
+                  onClick={() => setStatusFilter('SOLD')}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                    statusFilter === 'SOLD'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  Sold ({soldListings.length})
+                </button>
+              </div>
+
+              {/* Sort Dropdown */}
+              <div>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'date' | 'price' | 'recent')}
+                  className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                >
+                  <option value="date">Sort by Date</option>
+                  <option value="price">Sort by Price</option>
+                  <option value="recent">Recently Added</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Results count */}
+            {(searchQuery || statusFilter !== 'ALL') && (
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <p className="text-sm text-gray-600">
+                  Showing {sortedListings.length} of {listings.length} listings
+                  {searchQuery && ` matching "${searchQuery}"`}
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Active Listings */}
-          <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              Active Listings ({activeListings.length})
-            </h2>
-            {activeListings.length > 0 ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {activeListings.map((listing) => (
+          {(statusFilter === 'ALL' || statusFilter === 'ACTIVE') && (
+            <div className="mb-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Active Listings ({filteredActive.length})
+              </h2>
+              {filteredActive.length > 0 ? (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredActive.map((listing) => (
                   <div key={listing.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
                     <div className={`px-3 py-2 text-center ${listing.suite.area === 'L' ? 'bg-gradient-to-r from-green-100 to-green-50' : 'bg-gradient-to-r from-yellow-100 to-yellow-50'}`}>
                       <p className="text-xs font-bold text-black">
@@ -394,29 +688,36 @@ export default function MyListingsPage() {
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white rounded-xl shadow-md p-8 text-center border border-gray-200">
-                <p className="text-gray-600 mb-4">You don't have any active listings.</p>
-                <Link
-                  href="/sell"
-                  className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
-                >
-                  Create Your First Listing
-                </Link>
-              </div>
-            )}
-          </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white rounded-xl shadow-md p-8 text-center border border-gray-200">
+                  <p className="text-gray-600 mb-4">
+                    {searchQuery
+                      ? `No active listings found matching "${searchQuery}"`
+                      : "You don't have any active listings."}
+                  </p>
+                  {!searchQuery && (
+                    <Link
+                      href="/sell"
+                      className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                    >
+                      Create Your First Listing
+                    </Link>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Sold Listings */}
-          {soldListings.length > 0 && (
+          {(statusFilter === 'ALL' || statusFilter === 'SOLD') && filteredSold.length > 0 && (
             <div className="mb-8">
               <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Sold Listings ({soldListings.length})
+                Sold Listings ({filteredSold.length})
               </h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {soldListings.map((listing) => (
+                {filteredSold.map((listing) => (
                   <div key={listing.id} className="bg-gray-50 rounded-xl shadow-md overflow-hidden border border-gray-300 opacity-75">
                     <div className="px-3 py-2 text-center bg-gray-300">
                       <p className="text-xs font-bold text-gray-700">
@@ -495,13 +796,13 @@ export default function MyListingsPage() {
           )}
 
           {/* Other Status Listings */}
-          {otherListings.length > 0 && (
+          {statusFilter === 'ALL' && filteredOther.length > 0 && (
             <div className="mb-8">
               <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Other Listings ({otherListings.length})
+                Other Listings ({filteredOther.length})
               </h2>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {otherListings.map((listing) => (
+                {filteredOther.map((listing) => (
                   <div key={listing.id} className="bg-white rounded-xl shadow-md overflow-hidden border border-gray-300">
                     <div className="px-3 py-2 text-center bg-gray-100">
                       <p className="text-xs font-bold text-gray-700">
