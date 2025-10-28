@@ -25,6 +25,9 @@ interface ListingData {
   suiteArea: string;
   suiteNumber: number;
   suiteDisplayName: string;
+  status: string;
+  soldAt?: string;
+  sellerId?: string;
 }
 
 // Helper function to format suite area name
@@ -54,6 +57,7 @@ function BrowseContent() {
   const [mounted, setMounted] = useState(false);
   const [hasVerifiedSuites, setHasVerifiedSuites] = useState(false);
   const [pendingCount, setPendingCount] = useState<number>(0);
+  const [showOnlyMyListings, setShowOnlyMyListings] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -135,7 +139,12 @@ function BrowseContent() {
 
   const fetchListings = async () => {
     try {
-      const response = await fetch('/api/suites/listings');
+      // Add sellerId parameter if showing only my listings
+      const url = showOnlyMyListings && session?.user?.id
+        ? `/api/suites/listings?sellerId=${session.user.id}`
+        : '/api/suites/listings';
+
+      const response = await fetch(url);
       const result = await response.json();
 
       if (result.success) {
@@ -151,7 +160,14 @@ function BrowseContent() {
     }
   };
 
-  // Filter listings when event or suite area is selected
+  // Refetch when showOnlyMyListings changes
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchListings();
+    }
+  }, [showOnlyMyListings]);
+
+  // Filter listings when event, suite area, or my listings toggle changes
   useEffect(() => {
     let filtered = allListings;
 
@@ -163,8 +179,17 @@ function BrowseContent() {
       filtered = filtered.filter(listing => listing.suiteArea === selectedSuiteArea);
     }
 
+    if (showOnlyMyListings && session?.user?.id) {
+      // Filter to show only current user's listings
+      filtered = filtered.filter(listing => {
+        // We need to add sellerId to the listing data
+        // For now, we'll fetch this from the API
+        return true; // Placeholder - will be handled by API
+      });
+    }
+
     setListings(filtered);
-  }, [selectedEvent, selectedSuiteArea, allListings]);
+  }, [selectedEvent, selectedSuiteArea, showOnlyMyListings, allListings, session]);
 
   // Calculate suite area counts
   const suiteAreaCounts = {
@@ -349,9 +374,38 @@ function BrowseContent() {
             {!loading && listings.length > 0
               ? selectedEvent
                 ? `${listings.length} listing${listings.length === 1 ? '' : 's'} for ${selectedEvent}`
+                : showOnlyMyListings
+                ? `${listings.length} of your listing${listings.length === 1 ? '' : 's'}`
                 : `${listings.length} active listing${listings.length === 1 ? '' : 's'} available.`
               : 'View all available suite tickets.'}
           </p>
+
+          {/* Edit My Listings Toggle for Sellers */}
+          {session && ((session?.user?.role as string) === 'SELLER' || (session?.user?.role as string) === 'ADMIN') && (
+            <div className="mt-4 flex justify-center">
+              <button
+                onClick={() => {
+                  setShowOnlyMyListings(!showOnlyMyListings);
+                  setSelectedEvent(null);
+                  setSelectedSuiteArea(null);
+                }}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold transition-all ${
+                  showOnlyMyListings
+                    ? 'bg-primary text-primary-foreground border-2 border-foreground'
+                    : 'bg-card border-2 border-border text-foreground hover:bg-secondary'
+                }`}
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {showOnlyMyListings ? (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  ) : (
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  )}
+                </svg>
+                {showOnlyMyListings ? 'Editing My Listings' : 'Edit My Listings'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Two column layout: Filters on left (1/4), Listings on right (3/4) */}
@@ -387,9 +441,18 @@ function BrowseContent() {
             {listings.map((listing) => {
               const viewCount = Math.floor(Math.random() * 50) + 10;
               const isNew = new Date().getTime() - new Date(listing.createdAt).getTime() < 48 * 60 * 60 * 1000;
+              const isSold = listing.status === 'SOLD';
               return (
-              <div key={listing.listingId} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card-subtle transition-all duration-300 hover:scale-[1.02] hover:shadow-card-elevated">
-                <div className={`px-3 py-2 text-center ${listing.suiteArea === 'L' ? 'bg-gradient-to-r from-green-100 to-green-50' : 'bg-gradient-to-r from-yellow-100 to-yellow-50'}`}>
+              <div key={listing.listingId} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card-subtle transition-all duration-300 hover:scale-[1.02] hover:shadow-card-elevated relative">
+                {/* Diagonal SOLD banner */}
+                {isSold && (
+                  <div className="absolute top-0 left-0 right-0 bottom-0 z-10 pointer-events-none">
+                    <div className="absolute top-[50%] left-[-20%] right-[-20%] bg-red-600 text-white text-center font-black text-2xl py-3 shadow-2xl transform -translate-y-1/2 rotate-[-25deg] opacity-90">
+                      SOLD
+                    </div>
+                  </div>
+                )}
+                <div className={`px-3 py-2 text-center ${listing.suiteArea === 'L' ? 'bg-gradient-to-r from-green-100 to-green-50' : 'bg-gradient-to-r from-yellow-100 to-yellow-50'} ${isSold ? 'opacity-60' : ''}`}>
                   <p className="text-xs font-bold leading-tight text-black">
                     {formatSuiteArea(listing.suiteArea)}
                   </p>
@@ -455,46 +518,64 @@ function BrowseContent() {
                   </div>
 
                   <div className="flex flex-col gap-1.5">
-                    <Link
-                      href={`/listing/${listing.slug}`}
-                      className="inline-flex h-9 sm:h-8 w-full items-center justify-center rounded-lg border-2 border-foreground bg-primary px-3 text-xs sm:text-xs font-semibold text-foreground transition-all duration-300 hover:bg-primary-600 hover:shadow-lg active:scale-[0.98] group-hover:scale-105"
-                    >
-                      View Details
-                      <svg className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Link>
-                    <div className="grid grid-cols-3 gap-1.5">
-                      {listing.contactEmail && (
-                        <a
-                          href={`mailto:${listing.contactEmail}`}
-                          className="inline-flex h-9 sm:h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-[11px] sm:text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
-                          title="Email Seller"
+                    {showOnlyMyListings ? (
+                      // Edit mode - show edit button for seller's own listings
+                      <Link
+                        href={`/sell/edit/${listing.listingId}`}
+                        className="inline-flex h-9 sm:h-8 w-full items-center justify-center rounded-lg border-2 border-foreground bg-blue-600 px-3 text-xs sm:text-xs font-semibold text-white transition-all duration-300 hover:bg-blue-700 hover:shadow-lg active:scale-[0.98] group-hover:scale-105"
+                      >
+                        <svg className="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                        Edit Listing
+                      </Link>
+                    ) : (
+                      // Normal browse mode - show view details and contact buttons
+                      <>
+                        <Link
+                          href={`/listing/${listing.slug}`}
+                          className={`inline-flex h-9 sm:h-8 w-full items-center justify-center rounded-lg border-2 border-foreground bg-primary px-3 text-xs sm:text-xs font-semibold text-foreground transition-all duration-300 hover:bg-primary-600 hover:shadow-lg active:scale-[0.98] group-hover:scale-105 ${isSold ? 'opacity-50' : ''}`}
                         >
-                          Email
-                        </a>
-                      )}
-                      {listing.contactPhone && (
-                        <a
-                          href={`sms:${listing.contactPhone}`}
-                          className="inline-flex h-9 sm:h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-[11px] sm:text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
-                          title="Text Seller"
-                        >
-                          Text
-                        </a>
-                      )}
-                      {listing.contactMessenger && (
-                        <a
-                          href={`https://m.me/${listing.contactMessenger}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex h-9 sm:h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-[11px] sm:text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
-                          title="Message on Facebook Messenger"
-                        >
-                          FB
-                        </a>
-                      )}
-                    </div>
+                          View Details
+                          <svg className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
+                        {!isSold && (
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {listing.contactEmail && (
+                              <a
+                                href={`mailto:${listing.contactEmail}`}
+                                className="inline-flex h-9 sm:h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-[11px] sm:text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
+                                title="Email Seller"
+                              >
+                                Email
+                              </a>
+                            )}
+                            {listing.contactPhone && (
+                              <a
+                                href={`sms:${listing.contactPhone}`}
+                                className="inline-flex h-9 sm:h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-[11px] sm:text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
+                                title="Text Seller"
+                              >
+                                Text
+                              </a>
+                            )}
+                            {listing.contactMessenger && (
+                              <a
+                                href={`https://m.me/${listing.contactMessenger}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex h-9 sm:h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-[11px] sm:text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
+                                title="Message on Facebook Messenger"
+                              >
+                                FB
+                              </a>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               </div>

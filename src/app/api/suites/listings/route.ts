@@ -22,18 +22,23 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const eventId = searchParams.get('eventId');
-    const status = searchParams.get('status') || 'ACTIVE';
+    const status = searchParams.get('status');
+    const sellerId = searchParams.get('sellerId');
 
-    // Build where clause
+    // Build where clause - show both ACTIVE and SOLD by default
     const where: any = {
-      status: status,
+      status: status || { in: ['ACTIVE', 'SOLD'] },
     };
 
     if (eventId) {
       where.id = eventId;
     }
 
-    // Fetch active listings grouped by suite
+    if (sellerId) {
+      where.sellerId = sellerId;
+    }
+
+    // Fetch active and sold listings
     const listings = await db.listing.findMany({
       where,
       include: {
@@ -82,6 +87,9 @@ export async function GET(request: NextRequest) {
         suiteArea: listing.suite.area,
         suiteNumber: listing.suite.number,
         suiteDisplayName: listing.suite.displayName,
+        status: listing.status,
+        soldAt: listing.soldAt?.toISOString(),
+        sellerId: listing.sellerId,
       };
 
       // Add to highlighted list
