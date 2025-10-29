@@ -17,6 +17,15 @@ export default function HomePage() {
   const [upcomingShows, setUpcomingShows] = useState<UpcomingShow[]>([]);
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [hasVerifiedSuites, setHasVerifiedSuites] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
+
+  // Trigger animation on initial load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setHasAnimated(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -307,8 +316,19 @@ export default function HomePage() {
             <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/20 to-background" />
           </div>
 
+          {/* Spotlight Sweep Animation */}
+          {!hasAnimated && (
+            <div
+              className="absolute inset-0 z-[5] pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle 600px at var(--spotlight-x, -50%) 50%, transparent 0%, rgba(0,0,0,0.95) 100%)',
+                animation: 'spotlight-sweep 1200ms cubic-bezier(0.4, 0, 0.2, 1) forwards'
+              }}
+            />
+          )}
+
           {/* Content */}
-          <div className="container relative z-10 mx-auto text-center">
+          <div className={`container relative z-10 mx-auto text-center transition-opacity duration-700 ${hasAnimated ? 'opacity-100' : 'opacity-0'}`}>
             <h1 className="mx-auto mb-6 max-w-4xl text-4xl font-bold leading-[1.1] tracking-tight text-white drop-shadow-2xl sm:text-5xl md:text-6xl lg:text-7xl">
               <span className="font-serif italic text-white/90">Don't wait,</span>{' '}
               <span className="font-sans font-bold text-white">find your tickets</span>

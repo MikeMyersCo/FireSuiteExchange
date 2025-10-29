@@ -23,6 +23,9 @@ export async function GET() {
         name: true,
         email: true,
         phone: true,
+        contactEmail: true,
+        contactMessenger: true,
+        contactLink: true,
         showInDirectory: true,
         role: true,
       },
@@ -61,7 +64,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, phone, showInDirectory } = body;
+    const { name, phone, contactEmail, contactMessenger, contactLink, showInDirectory } = body;
 
     // Update user
     const updatedUser = await db.user.update({
@@ -69,6 +72,9 @@ export async function PATCH(request: NextRequest) {
       data: {
         ...(name !== undefined && { name }),
         ...(phone !== undefined && { phone }),
+        ...(contactEmail !== undefined && { contactEmail }),
+        ...(contactMessenger !== undefined && { contactMessenger }),
+        ...(contactLink !== undefined && { contactLink }),
         ...(showInDirectory !== undefined && { showInDirectory }),
       },
       select: {
@@ -76,6 +82,9 @@ export async function PATCH(request: NextRequest) {
         name: true,
         email: true,
         phone: true,
+        contactEmail: true,
+        contactMessenger: true,
+        contactLink: true,
         showInDirectory: true,
         role: true,
       },

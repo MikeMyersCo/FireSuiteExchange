@@ -119,3 +119,23 @@
     }
   }
 }
+
+/* Spotlight Sweep Animation - Concert Stage Reveal */
+@keyframes spotlight-sweep {
+  0% {
+    --spotlight-x: -50%;
+  }
+  100% {
+    --spotlight-x: 150%;
+    opacity: 0;
+  }
+}
+
+/* Disable spotlight animation for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  @keyframes spotlight-sweep {
+    0%, 100% {
+      opacity: 0;
+    }
+  }
+}

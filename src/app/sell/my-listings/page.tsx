@@ -678,6 +678,12 @@ export default function MyListingsPage() {
                         >
                           View
                         </Link>
+                        <Link
+                          href={`/sell/edit/${listing.id}`}
+                          className="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+                        >
+                          Edit
+                        </Link>
                         <button
                           onClick={() => handleMarkAllAsSold(listing.id, listing.quantity)}
                           disabled={updatingStatus === listing.id}
@@ -782,12 +788,20 @@ export default function MyListingsPage() {
                         </div>
                       </div>
 
-                      <Link
-                        href={`/listing/${listing.slug}`}
-                        className="block text-center px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors text-sm"
-                      >
-                        View Details
-                      </Link>
+                      <div className="flex gap-2">
+                        <Link
+                          href={`/listing/${listing.slug}`}
+                          className="flex-1 text-center px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors text-sm"
+                        >
+                          View
+                        </Link>
+                        <Link
+                          href={`/sell/edit/${listing.id}`}
+                          className="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+                        >
+                          Edit
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 ))}

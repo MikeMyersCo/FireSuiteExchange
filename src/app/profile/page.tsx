@@ -17,6 +17,9 @@ interface UserSettings {
   name: string | null;
   email: string;
   phone: string | null;
+  contactEmail: string | null;
+  contactMessenger: string | null;
+  contactLink: string | null;
   showInDirectory: boolean;
   role: string;
 }
@@ -33,6 +36,9 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    contactEmail: '',
+    contactMessenger: '',
+    contactLink: '',
     showInDirectory: false,
   });
 
@@ -57,6 +63,9 @@ export default function ProfilePage() {
         setFormData({
           name: data.user.name || '',
           phone: data.user.phone || '',
+          contactEmail: data.user.contactEmail || '',
+          contactMessenger: data.user.contactMessenger || '',
+          contactLink: data.user.contactLink || '',
           showInDirectory: data.user.showInDirectory || false,
         });
       }
@@ -217,6 +226,60 @@ export default function ProfilePage() {
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       placeholder="(555) 123-4567"
                     />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Listing Contact Information */}
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold">Listing Contact Information</h3>
+                <p className="text-sm text-muted-foreground">
+                  These details will auto-populate when you create new ticket listings
+                </p>
+
+                <div className="grid gap-4">
+                  <div>
+                    <Label htmlFor="contactEmail">Contact Email</Label>
+                    <Input
+                      id="contactEmail"
+                      type="email"
+                      value={formData.contactEmail}
+                      onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
+                      placeholder="your-email@example.com"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Preferred email for buyers to contact you about listings
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="contactMessenger">Facebook Messenger</Label>
+                    <Input
+                      id="contactMessenger"
+                      type="text"
+                      value={formData.contactMessenger}
+                      onChange={(e) => setFormData({ ...formData, contactMessenger: e.target.value })}
+                      placeholder="your.messenger.username"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Your Facebook Messenger username for instant messaging
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="contactLink">Other Contact Link</Label>
+                    <Input
+                      id="contactLink"
+                      type="text"
+                      value={formData.contactLink}
+                      onChange={(e) => setFormData({ ...formData, contactLink: e.target.value })}
+                      placeholder="https://..."
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Any other contact method (WhatsApp, Instagram, etc.)
+                    </p>
                   </div>
                 </div>
               </div>

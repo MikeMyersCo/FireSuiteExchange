@@ -17,6 +17,7 @@ export default function SellPage() {
   const [success, setSuccess] = useState('');
   const [verifiedSuites, setVerifiedSuites] = useState<any[]>([]);
   const [loadingSuites, setLoadingSuites] = useState(true);
+  const [userSettings, setUserSettings] = useState<any>(null);
 
   const [formData, setFormData] = useState({
     suiteId: '',
@@ -26,8 +27,8 @@ export default function SellPage() {
     quantity: '8',
     pricePerSeat: '',
     deliveryMethod: 'MOBILE_TRANSFER',
-    contactEmail: session?.user?.email || '',
-    contactPhone: (session?.user as any)?.phone || '',
+    contactEmail: '',
+    contactPhone: '',
     contactLink: '',
     contactMessenger: '',
     allowMessages: false,
@@ -43,9 +44,32 @@ export default function SellPage() {
     }
 
     if (status === 'authenticated' && session?.user) {
+      fetchUserSettings();
       fetchVerifiedSuites();
     }
   }, [status, session, router]);
+
+  const fetchUserSettings = async () => {
+    try {
+      const response = await fetch('/api/user/settings');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setUserSettings(data.user);
+          // Auto-populate contact fields from user settings
+          setFormData(prev => ({
+            ...prev,
+            contactEmail: data.user.contactEmail || data.user.email || '',
+            contactPhone: data.user.phone || '',
+            contactMessenger: data.user.contactMessenger || '',
+            contactLink: data.user.contactLink || '',
+          }));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch user settings:', err);
+    }
+  };
 
   const fetchVerifiedSuites = async () => {
     try {

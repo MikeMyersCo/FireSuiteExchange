@@ -54,6 +54,9 @@ model User {
   role          UserRole  @default(GUEST)
   name          String?
   phone         String?
+  contactEmail  String?   @map("contact_email") // Preferred contact email for listings
+  contactMessenger String? @map("contact_messenger") // Facebook Messenger username
+  contactLink   String?   @map("contact_link") // Any other contact link
   twoFaSecret   String?   @map("twofa_secret")
   emailVerified DateTime? @map("email_verified")
   isLocked      Boolean   @default(false) @map("is_locked")
