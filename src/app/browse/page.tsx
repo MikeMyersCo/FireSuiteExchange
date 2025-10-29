@@ -58,6 +58,9 @@ function BrowseContent() {
   const [hasVerifiedSuites, setHasVerifiedSuites] = useState(false);
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [showOnlyMyListings, setShowOnlyMyListings] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showVenueMap, setShowVenueMap] = useState(false);
+  const [showEventPicker, setShowEventPicker] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -167,7 +170,7 @@ function BrowseContent() {
     }
   }, [showOnlyMyListings]);
 
-  // Filter listings when event, suite area, or my listings toggle changes
+  // Filter listings when event, suite area, search query, or my listings toggle changes
   useEffect(() => {
     let filtered = allListings;
 
@@ -177,6 +180,12 @@ function BrowseContent() {
 
     if (selectedSuiteArea) {
       filtered = filtered.filter(listing => listing.suiteArea === selectedSuiteArea);
+    }
+
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(listing =>
+        listing.eventTitle.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
 
     if (showOnlyMyListings && session?.user?.id) {
@@ -189,7 +198,7 @@ function BrowseContent() {
     }
 
     setListings(filtered);
-  }, [selectedEvent, selectedSuiteArea, showOnlyMyListings, allListings, session]);
+  }, [selectedEvent, selectedSuiteArea, searchQuery, showOnlyMyListings, allListings, session]);
 
   // Calculate suite area counts
   const suiteAreaCounts = {
@@ -422,36 +431,138 @@ function BrowseContent() {
           )}
         </div>
 
-        {/* Two column layout: Filters on left (1/4), Listings on right (3/4) */}
-        <div className="flex flex-col gap-4 lg:flex-row">
-          {/* Left sidebar - Vertical layout on mobile, sticky on desktop */}
-          <div className="lg:w-1/4 lg:-ml-16">
-            <div className="lg:sticky lg:top-20 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto flex flex-col gap-4">
-              {/* Venue Map - Interactive seating chart */}
-              <div className="flex-1 lg:flex-none">
-                <VenueMap
-                  selectedArea={selectedSuiteArea}
-                  onAreaSelect={setSelectedSuiteArea}
-                />
-              </div>
-
+        {/* Compact Filter Bar */}
+        <div className="mb-8 rounded-2xl border border-border bg-card p-4 shadow-card-subtle">
+          <div className="flex flex-col gap-4">
+            {/* Search and Filter Controls */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3">
+              {/* Search Input */}
               <div className="flex-1">
-                <EventsCalendar onEventSelect={setSelectedEvent} selectedEvent={selectedEvent} />
-              </div>
-            </div>
-          </div>
-
-          {/* Right content - Listings */}
-          <div className="lg:w-3/4">
-            {loading ? (
-              <div className="flex items-center justify-center py-20">
-                <div className="text-center">
-                  <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
-                  <p className="mt-4 text-foreground/70">Loading listings...</p>
+                <div className="relative">
+                  <svg className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-foreground/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    placeholder="Search events by artist name..."
+                    value={searchQuery}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      if (e.target.value.trim() && selectedEvent) {
+                        setSelectedEvent(null); // Clear date filter when searching by name
+                      }
+                    }}
+                    className="w-full rounded-lg border-2 border-border bg-background py-2.5 pl-10 pr-4 text-sm text-foreground placeholder:text-foreground/40 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground"
+                    >
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
-            ) : listings.length > 0 ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
+              {/* Suite Area Dropdown */}
+              <div className="sm:w-48">
+                <select
+                  value={selectedSuiteArea || ''}
+                  onChange={(e) => setSelectedSuiteArea(e.target.value || null)}
+                  className="w-full rounded-lg border-2 border-border bg-background py-2.5 px-4 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="">All Suite Areas</option>
+                  <option value="L">Lower Bowl ({suiteAreaCounts.L})</option>
+                  <option value="UNT">North Terrace ({suiteAreaCounts.UNT})</option>
+                  <option value="UST">South Terrace ({suiteAreaCounts.UST})</option>
+                </select>
+              </div>
+
+              {/* View Map Button */}
+              <button
+                onClick={() => setShowVenueMap(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-foreground bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-secondary sm:w-auto"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                View Map
+              </button>
+
+              {/* Browse by Date Button */}
+              <button
+                onClick={() => setShowEventPicker(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-lg border-2 border-foreground bg-background px-4 py-2.5 text-sm font-semibold text-foreground transition-all hover:bg-secondary sm:w-auto"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                By Date
+              </button>
+
+              {/* Clear All Button */}
+              {(selectedEvent || selectedSuiteArea || searchQuery) && (
+                <button
+                  onClick={() => {
+                    setSelectedEvent(null);
+                    setSelectedSuiteArea(null);
+                    setSearchQuery('');
+                  }}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-red-50 border-2 border-red-200 px-4 py-2.5 text-sm font-semibold text-red-700 transition-all hover:bg-red-100 sm:w-auto"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Clear All
+                </button>
+              )}
+            </div>
+
+            {/* Active Filter Pills */}
+            {(selectedEvent || selectedSuiteArea) && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-medium text-foreground/70">Active filters:</span>
+                {selectedEvent && (
+                  <button
+                    onClick={() => setSelectedEvent(null)}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 border border-blue-300 px-3 py-1 text-sm font-medium text-blue-900 transition-all hover:bg-blue-200"
+                  >
+                    {selectedEvent}
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+                {selectedSuiteArea && (
+                  <button
+                    onClick={() => setSelectedSuiteArea(null)}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-green-100 border border-green-300 px-3 py-1 text-sm font-medium text-green-900 transition-all hover:bg-green-200"
+                  >
+                    {formatSuiteArea(selectedSuiteArea)}
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Full-width Listings */}
+        <div>
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="text-center">
+                <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
+                <p className="mt-4 text-foreground/70">Loading listings...</p>
+              </div>
+            </div>
+          ) : listings.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {listings.map((listing) => {
               const viewCount = Math.floor(Math.random() * 50) + 10;
               const isNew = new Date().getTime() - new Date(listing.createdAt).getTime() < 48 * 60 * 60 * 1000;
@@ -594,10 +705,10 @@ function BrowseContent() {
                 </div>
               </div>
               );
-            })}
-              </div>
-            ) : (
-              <div className="mt-8 rounded-2xl border border-border bg-card p-12 text-center shadow-card-subtle">
+          })}
+            </div>
+          ) : (
+            <div className="mt-8 rounded-2xl border border-border bg-card p-12 text-center shadow-card-subtle">
                 <div className="mb-6 text-6xl">🎫</div>
                 <h3 className="mb-3 text-heading-sm font-semibold text-foreground">
                   No Active Listings
@@ -609,14 +720,14 @@ function BrowseContent() {
                   href="/verify-suite"
                   className="inline-flex h-12 items-center justify-center rounded-xl border-2 border-foreground bg-primary px-8 text-base font-semibold text-foreground transition-all hover:bg-primary-600 active:scale-[0.98]"
                 >
-                  {hasVerifiedSuites ? 'Add Additional Suites' : 'Become a Seller'}
-                </Link>
-              </div>
-            )}
+                {hasVerifiedSuites ? 'Add Additional Suites' : 'Become a Seller'}
+              </Link>
+            </div>
+          )}
 
-            {/* Instructions */}
-            {!loading && listings.length > 0 && (
-              <div className="mt-8 md:mt-12 rounded-2xl border border-primary/20 bg-primary-50 p-6 md:p-8">
+          {/* Instructions */}
+          {!loading && listings.length > 0 && (
+            <div className="mt-8 md:mt-12 rounded-2xl border border-primary/20 bg-primary-50 p-6 md:p-8">
                 <h3 className="mb-4 text-heading-sm font-semibold text-foreground">How to Purchase</h3>
                 <ol className="space-y-3 text-base text-foreground/70">
                   <li className="flex items-start">
@@ -635,10 +746,9 @@ function BrowseContent() {
                     <span className="mr-3 font-bold text-foreground">4.</span>
                     <span>Arrange payment and ticket delivery with the verified seller</span>
                   </li>
-                </ol>
-              </div>
-            )}
-          </div>
+              </ol>
+            </div>
+          )}
         </div>
       </main>
 
@@ -660,6 +770,87 @@ function BrowseContent() {
           </div>
         </div>
       </footer>
+
+      {/* Venue Map Modal */}
+      {mounted && showVenueMap && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setShowVenueMap(false)}
+        >
+          <div
+            className="relative w-full max-w-4xl rounded-2xl border-2 border-border bg-card p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header with close button */}
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-bold text-foreground">Venue Map</h3>
+                <p className="text-sm text-foreground/70">Click a section to filter tickets by suite area</p>
+              </div>
+              <button
+                onClick={() => setShowVenueMap(false)}
+                className="rounded-lg p-2 text-foreground/70 transition-all hover:bg-secondary hover:text-foreground"
+                aria-label="Close map"
+              >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Venue Map Component */}
+            <VenueMap
+              selectedArea={selectedSuiteArea}
+              onAreaSelect={(area) => {
+                setSelectedSuiteArea(area);
+                setShowVenueMap(false);
+              }}
+            />
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {/* Event Picker Modal */}
+      {mounted && showEventPicker && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setShowEventPicker(false)}
+        >
+          <div
+            className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl border-2 border-border bg-card p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header with close button */}
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h3 className="text-2xl font-bold text-foreground">Browse Events by Date</h3>
+                <p className="text-sm text-foreground/70">Select a concert to filter listings</p>
+              </div>
+              <button
+                onClick={() => setShowEventPicker(false)}
+                className="rounded-lg p-2 text-foreground/70 transition-all hover:bg-secondary hover:text-foreground"
+                aria-label="Close event picker"
+              >
+                <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Events Calendar Component */}
+            <EventsCalendar
+              onEventSelect={(event) => {
+                setSelectedEvent(event);
+                setSearchQuery(''); // Clear search when selecting from calendar
+                setShowEventPicker(false);
+              }}
+              selectedEvent={selectedEvent}
+            />
+          </div>
+        </div>,
+        document.body
+      )}
 
       {/* Verified Badge Information Modal */}
       {mounted && showVerifiedModal && createPortal(
