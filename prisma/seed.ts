@@ -31,9 +31,9 @@ function generatePrice(): number {
   return Math.floor(Math.random() * 201) + 100; // $100 to $300
 }
 
-// Generate random quantity between 2 and 8
+// Generate quantity - always 8 seats (full suite capacity)
 function generateQuantity(): number {
-  return Math.floor(Math.random() * 7) + 2; // 2 to 8 seats
+  return 8; // Always 8 seats for full suite
 }
 
 // Get delivery method - always AXS Transfer
@@ -339,7 +339,8 @@ async function main() {
   console.log(`   • 60 verified suite owners (30 Lower Bowl, 15 North Terrace, 15 South Terrace)`);
   console.log(`   • ${listingCount} active listings`);
   console.log(`   • ${EVENTS_2026.length} different concerts`);
-  console.log(`   • Prices range from $100-$300 per seat\n`);
+  console.log(`   • Prices range from $100-$300 per seat`);
+  console.log(`   • All listings include full suite capacity (8 seats)\n`);
 
   console.log('🎉 Seed completed successfully!\n');
   console.log('📝 Test Login Credentials:');
