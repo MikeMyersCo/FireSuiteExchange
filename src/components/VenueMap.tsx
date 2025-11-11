@@ -41,15 +41,16 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
   // Define section groups by area
   const sectionGroups = {
     L: ['201', '202', '203', '204', '205'], // Lower Suites Fire Suites
-    UNT: ['V101', 'V102', 'V104', 'V194', 'V104', 'V100', 'V108', 'V113'], // North Terrace
-    UST: ['V154', 'V108', 'V118', 'V117', 'V110', 'V115'], // South Terrace
+    UNT: ['V101', 'V102', 'V104', 'V106', 'V107', 'V108', 'V109'], // North Terrace
+    UST: ['V110', 'V112', 'V113', 'V115', 'V116', 'V117', 'V118'], // South Terrace
   };
 
   const handleSectionClick = (area: string) => {
-    if (selectedArea === area) {
-      onAreaSelect(null);
-    } else {
-      onAreaSelect(area);
+    // Always select the clicked area, don't toggle off if already selected
+    onAreaSelect(area);
+    // Close the modal if it's expanded so user can see the filtered results
+    if (isExpanded) {
+      setIsExpanded(false);
     }
   };
 
@@ -74,202 +75,158 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
     return selectedArea === area ? '3' : '1.5';
   };
 
-  const renderSVG = (className: string = "w-full h-auto") => (
-    <svg
-      viewBox="0 0 1000 900"
-      className={className}
-      xmlns="http://www.w3.org/2000/svg"
-    >
-        {/* Stage */}
-        <rect
-          x="350"
-          y="780"
-          width="300"
-          height="70"
-          fill="#6b7280"
-          stroke="#4b5563"
-          strokeWidth="2"
-          rx="5"
-        />
-        <text x="500" y="823" textAnchor="middle" fill="white" fontSize="20" className="text-[16px] sm:text-[20px]" fontWeight="bold">
-          STAGE
-        </text>
+  const renderMap = (className: string = "w-full h-auto") => (
+    <div className="relative w-full">
+      {/* Base venue map image */}
+      <img
+        src="/images/venue-map.png"
+        alt="Venue Map"
+        className={className}
+        style={{ width: '100%', height: 'auto' }}
+      />
 
-        {/* Bottom Sections (100s) - NOT CLICKABLE - Moved down and made thicker */}
-        <rect
-          x="300"
-          y="650"
-          width="400"
-          height="80"
-          fill="#f3f4f6"
-          stroke="#d1d5db"
-          strokeWidth="2"
-          rx="5"
-        />
-        <text x="500" y="697" textAnchor="middle" fill="#6b7280" fontSize="16" className="text-[14px] sm:text-[16px]" fontWeight="bold">
-          100's
-        </text>
+      {/* SVG overlay for clickable areas */}
+      <svg
+        viewBox="0 0 877 655"
+        className="absolute inset-0 w-full h-full"
+        style={{ pointerEvents: 'none' }}
+      >
+        {/* V-Sections - V101-V117 */}
 
-        {/* Lower Suites (201-205) - Fire Suites in Green - CLICKABLE */}
-        {/* These are elongated polygons matching the original venue layout */}
-        <g
+        {/* Left side V-sections (V101, V102, V103) - angled on left terrace */}
+        {/* V101 */}
+        <rect x="155" y="192" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V101-104')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V102 */}
+        <rect x="195" y="165" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V101-104')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V103 */}
+        <rect x="232" y="145" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V101-104')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* Top row V-sections (V104-V113) - horizontal across top */}
+        {/* V104 */}
+        <rect x="265" y="140" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V101-104')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V105 */}
+        <rect x="297" y="137" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UNT')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V106 */}
+        <rect x="329" y="136" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UNT')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V107 */}
+        <rect x="361" y="135" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UNT')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V108 */}
+        <rect x="393" y="134" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UNT')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V109 */}
+        <rect x="425" y="134" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UNT')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V110 */}
+        <rect x="457" y="134" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V111 */}
+        <rect x="489" y="134" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V112 */}
+        <rect x="521" y="135" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V113 */}
+        <rect x="553" y="136" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* Right side V-sections (V114-V117) - angled on right terrace */}
+        {/* V114 */}
+        <rect x="620" y="145" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V115 */}
+        <rect x="655" y="165" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V116 */}
+        <rect x="693" y="188" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* V117 */}
+        <rect x="728" y="212" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+
+        {/* Lower Bowl Suites (201-205) */}
+
+        {/* 201 - Left Lower Suite */}
+        <polygon
+          points="235,355 250,340 280,345 290,365 285,405 245,415"
+          fill="transparent"
+          stroke="transparent"
+          strokeWidth="0"
           onClick={() => handleSectionClick('L')}
-          onMouseEnter={() => setHoveredArea('L')}
-          onMouseLeave={() => setHoveredArea(null)}
-          className="cursor-pointer transition-all"
-        >
-          {/* Section 201 - Left - Elongated */}
-          <path
-            d="M 160 590 L 155 520 L 180 485 L 245 505 L 265 540 L 260 600 Z"
-            fill={getSectionFill('L')}
-            stroke={getStrokeColor('L')}
-            strokeWidth={getStrokeWidth('L')}
-          />
-          <text x="210" y="550" textAnchor="middle" fill="#000" fontSize="14" className="text-[12px] sm:text-[14px]" fontWeight="bold">
-            201
-          </text>
+          className="cursor-pointer"
+          style={{ pointerEvents: 'auto' }}
+        />
 
-          {/* Section 202 - Elongated */}
-          <path
-            d="M 265 600 L 260 540 L 245 505 L 300 475 L 360 490 L 385 525 L 385 595 Z"
-            fill={getSectionFill('L')}
-            stroke={getStrokeColor('L')}
-            strokeWidth={getStrokeWidth('L')}
-          />
-          <text x="320" y="550" textAnchor="middle" fill="#000" fontSize="14" className="text-[12px] sm:text-[14px]" fontWeight="bold">
-            202
-          </text>
+        {/* 202 - Left-Center Lower Suite */}
+        <polygon
+          points="298,338 318,323 350,318 358,335 356,388 308,395"
+          fill="transparent"
+          stroke="transparent"
+          strokeWidth="0"
+          onClick={() => handleSectionClick('L')}
+          className="cursor-pointer"
+          style={{ pointerEvents: 'auto' }}
+        />
 
-          {/* Section 203 - Center - Large elongated rectangle */}
-          <path
-            d="M 385 595 L 385 450 L 615 450 L 615 595 Z"
-            fill={getSectionFill('L')}
-            stroke={getStrokeColor('L')}
-            strokeWidth={getStrokeWidth('L')}
-          />
-          <text x="500" y="535" textAnchor="middle" fill="#000" fontSize="18" className="text-[16px] sm:text-[18px]" fontWeight="bold">
-            203
-          </text>
+        {/* 203 - Center Lower Suite */}
+        <polygon
+          points="370,300 400,290 477,290 507,300 515,345 365,345"
+          fill="transparent"
+          stroke="transparent"
+          strokeWidth="0"
+          onClick={() => handleSectionClick('L')}
+          className="cursor-pointer"
+          style={{ pointerEvents: 'auto' }}
+        />
 
-          {/* Section 204 - Elongated */}
-          <path
-            d="M 615 595 L 615 525 L 640 490 L 700 475 L 755 505 L 740 540 L 735 600 Z"
-            fill={getSectionFill('L')}
-            stroke={getStrokeColor('L')}
-            strokeWidth={getStrokeWidth('L')}
-          />
-          <text x="680" y="550" textAnchor="middle" fill="#000" fontSize="14" className="text-[12px] sm:text-[14px]" fontWeight="bold">
-            204
-          </text>
+        {/* 204 - Right-Center Lower Suite */}
+        <polygon
+          points="518,318 527,323 556,338 568,395 520,388 518,335"
+          fill="transparent"
+          stroke="transparent"
+          strokeWidth="0"
+          onClick={() => handleSectionClick('L')}
+          className="cursor-pointer"
+          style={{ pointerEvents: 'auto' }}
+        />
 
-          {/* Section 205 - Right - Elongated */}
-          <path
-            d="M 735 600 L 740 540 L 755 505 L 820 485 L 845 520 L 840 590 Z"
-            fill={getSectionFill('L')}
-            stroke={getStrokeColor('L')}
-            strokeWidth={getStrokeWidth('L')}
-          />
-          <text x="790" y="550" textAnchor="middle" fill="#000" fontSize="14" className="text-[12px] sm:text-[14px]" fontWeight="bold">
-            205
-          </text>
-        </g>
+        {/* 205 - Right Lower Suite */}
+        <polygon
+          points="585,345 600,340 632,355 640,415 595,405 590,365"
+          fill="transparent"
+          stroke="transparent"
+          strokeWidth="0"
+          onClick={() => handleSectionClick('L')}
+          className="cursor-pointer"
+          style={{ pointerEvents: 'auto' }}
+        />
 
-        {/* Upper Sections (300s) - Regular seating - NOT CLICKABLE */}
-        {/* Evenly distributed from left to right forming an arc */}
-        <g fill="#f3f4f6" stroke="#d1d5db" strokeWidth="1">
-          <rect x="50" y="360" width="55" height="60" rx="5" />
-          <text x="77" y="395" textAnchor="middle" fill="#6b7280" fontSize="12">301</text>
-
-          <rect x="110" y="345" width="55" height="60" rx="5" />
-          <text x="137" y="380" textAnchor="middle" fill="#6b7280" fontSize="12">302</text>
-
-          <rect x="170" y="335" width="55" height="60" rx="5" />
-          <text x="197" y="370" textAnchor="middle" fill="#6b7280" fontSize="12">303</text>
-
-          <rect x="230" y="325" width="55" height="60" rx="5" />
-          <text x="257" y="360" textAnchor="middle" fill="#6b7280" fontSize="12">304</text>
-
-          <rect x="290" y="318" width="55" height="60" rx="5" />
-          <text x="317" y="353" textAnchor="middle" fill="#6b7280" fontSize="12">305</text>
-
-          <rect x="350" y="315" width="55" height="60" rx="5" />
-          <text x="377" y="350" textAnchor="middle" fill="#6b7280" fontSize="12">306</text>
-
-          <rect x="410" y="313" width="55" height="60" rx="5" />
-          <text x="437" y="348" textAnchor="middle" fill="#6b7280" fontSize="12">307</text>
-
-          <rect x="470" y="312" width="55" height="60" rx="5" />
-          <text x="497" y="347" textAnchor="middle" fill="#6b7280" fontSize="12">308</text>
-
-          <rect x="530" y="313" width="55" height="60" rx="5" />
-          <text x="557" y="348" textAnchor="middle" fill="#6b7280" fontSize="12">309</text>
-
-          <rect x="590" y="315" width="55" height="60" rx="5" />
-          <text x="617" y="350" textAnchor="middle" fill="#6b7280" fontSize="12">310</text>
-
-          <rect x="650" y="318" width="55" height="60" rx="5" />
-          <text x="677" y="353" textAnchor="middle" fill="#6b7280" fontSize="12">311</text>
-
-          <rect x="710" y="325" width="55" height="60" rx="5" />
-          <text x="737" y="360" textAnchor="middle" fill="#6b7280" fontSize="12">312</text>
-
-          <rect x="770" y="335" width="55" height="60" rx="5" />
-          <text x="797" y="370" textAnchor="middle" fill="#6b7280" fontSize="12">313</text>
-
-          <rect x="830" y="345" width="55" height="60" rx="5" />
-          <text x="857" y="380" textAnchor="middle" fill="#6b7280" fontSize="12">314</text>
-
-          <rect x="890" y="360" width="55" height="60" rx="5" />
-          <text x="917" y="395" textAnchor="middle" fill="#6b7280" fontSize="12">315</text>
-        </g>
-
-        {/* Lawn Area - Expanded thicker section between 300s and Terraces - NOT CLICKABLE */}
-        <g fill="#d4f4dd" stroke="#9ca3af" strokeWidth="2" opacity="0.6">
-          {/* Main lawn area running north to south - much thicker now */}
-          <path
-            d="M 140 280 L 860 280 L 860 180 L 140 180 Z"
-          />
-          <text x="500" y="240" textAnchor="middle" fill="#4b5563" fontSize="20" className="text-[16px] sm:text-[20px]" fontWeight="bold">
-            LAWN
-          </text>
-        </g>
-
-        {/* North Terrace (UNT) - Yellow - CLICKABLE - Moved higher */}
-        <g
+        {/* North Terrace - Left side green area with V101-V103 */}
+        <polygon
+          points="120,125 145,175 200,230 245,220 270,175 230,140 180,120"
+          fill="transparent"
+          stroke="transparent"
+          strokeWidth="0"
           onClick={() => handleSectionClick('UNT')}
-          onMouseEnter={() => setHoveredArea('UNT')}
-          onMouseLeave={() => setHoveredArea(null)}
-          className="cursor-pointer transition-all"
-        >
-          <path
-            d="M 110 170 L 110 50 L 420 30 L 420 150 Z"
-            fill={getSectionFill('UNT')}
-            stroke={getStrokeColor('UNT')}
-            strokeWidth={getStrokeWidth('UNT')}
-          />
-          <text x="265" y="110" textAnchor="middle" fill="#000" fontSize="16" className="text-[14px] sm:text-[16px]" fontWeight="bold">
-            NORTH TERRACE
-          </text>
-        </g>
+          className="cursor-pointer"
+          style={{ pointerEvents: 'auto' }}
+        />
 
-        {/* South Terrace (UST) - Yellow - CLICKABLE - Moved higher */}
-        <g
+        {/* South Terrace - Right side green area with V114-V117 */}
+        <polygon
+          points="605,175 630,220 685,230 740,175 760,125 700,120 650,140"
+          fill="transparent"
+          stroke="transparent"
+          strokeWidth="0"
           onClick={() => handleSectionClick('UST')}
-          onMouseEnter={() => setHoveredArea('UST')}
-          onMouseLeave={() => setHoveredArea(null)}
-          className="cursor-pointer transition-all"
-        >
-          <path
-            d="M 890 170 L 890 50 L 580 30 L 580 150 Z"
-            fill={getSectionFill('UST')}
-            stroke={getStrokeColor('UST')}
-            strokeWidth={getStrokeWidth('UST')}
-          />
-          <text x="735" y="110" textAnchor="middle" fill="#000" fontSize="16" className="text-[14px] sm:text-[16px]" fontWeight="bold">
-            SOUTH TERRACE
-          </text>
-        </g>
+          className="cursor-pointer"
+          style={{ pointerEvents: 'auto' }}
+        />
       </svg>
+    </div>
   );
 
   return (
@@ -291,7 +248,7 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
           Click a section to filter tickets
         </p>
 
-        {renderSVG()}
+        {renderMap()}
 
         {/* Legend */}
         <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs">
@@ -339,7 +296,7 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
 
             {/* Large Map */}
             <div className="max-h-[70vh] overflow-auto">
-              {renderSVG("w-full h-auto min-h-[600px]")}
+              {renderMap("w-full h-auto min-h-[600px]")}
             </div>
 
             {/* Legend */}
