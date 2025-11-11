@@ -77,6 +77,13 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
 
   const renderMap = (className: string = "w-full h-auto") => (
     <div className="relative w-full">
+      {/* Ford Amphitheatre Title */}
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
+        <h2 className="text-lg md:text-2xl font-bold text-gray-800 tracking-wide">
+          FORD AMPHITHEATRE
+        </h2>
+      </div>
+
       {/* Base venue map image */}
       <img
         src="/images/venue-map.png"
@@ -231,12 +238,12 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
 
   return (
     <>
-      <div className="w-full rounded-2xl border border-border bg-card p-4">
+      <div className="w-full rounded-2xl border-2 border-blue-400 bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 p-4 shadow-xl">
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-center text-lg font-bold text-foreground flex-1">Venue Map</h3>
+          <h3 className="text-center text-lg font-bold text-white flex-1">Venue Map</h3>
           <button
             onClick={() => setIsExpanded(true)}
-            className="rounded-lg border-2 border-foreground bg-background px-3 py-1.5 text-xs font-semibold text-foreground transition-all hover:bg-secondary"
+            className="rounded-lg border-2 border-white bg-white px-3 py-1.5 text-xs font-semibold text-gray-900 transition-all hover:bg-gray-100 shadow-md"
             aria-label="Expand map"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,26 +251,12 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
             </svg>
           </button>
         </div>
-        <p className="mb-4 text-center text-xs text-foreground/70">
+        <p className="mb-4 text-center text-xs text-white font-medium">
           Click a section to filter tickets
         </p>
 
-        {renderMap()}
-
-        {/* Legend */}
-        <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs">
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-4 rounded border border-green-600 bg-green-100"></div>
-            <span className="text-foreground/70">Lower Suites (201-205)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-4 rounded border border-yellow-600 bg-yellow-100"></div>
-            <span className="text-foreground/70">Upper Suites</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="h-4 w-4 rounded border border-gray-400 bg-gray-100"></div>
-            <span className="text-foreground/70">Other Seating</span>
-          </div>
+        <div className="bg-white rounded-xl p-3 shadow-lg">
+          {renderMap()}
         </div>
       </div>
 
@@ -274,18 +267,18 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
           onClick={() => setIsExpanded(false)}
         >
           <div
-            className="relative w-full max-w-6xl rounded-2xl border-2 border-border bg-card p-6 shadow-2xl"
+            className="relative w-full max-w-6xl rounded-2xl border-4 border-blue-400 bg-gradient-to-br from-blue-400 via-purple-400 to-pink-400 p-6 shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header with close button */}
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h3 className="text-2xl font-bold text-foreground">Venue Map</h3>
-                <p className="text-sm text-foreground/70">Click a section to filter tickets</p>
+                <h3 className="text-2xl font-bold text-white">Venue Map</h3>
+                <p className="text-sm text-white font-medium">Click a section to filter tickets</p>
               </div>
               <button
                 onClick={() => setIsExpanded(false)}
-                className="rounded-lg border-2 border-foreground bg-background px-4 py-2 text-sm font-semibold text-foreground transition-all hover:bg-secondary"
+                className="rounded-lg border-2 border-white bg-white px-4 py-2 text-sm font-semibold text-gray-900 transition-all hover:bg-gray-100 shadow-lg"
                 aria-label="Close map"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -295,24 +288,8 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
             </div>
 
             {/* Large Map */}
-            <div className="max-h-[70vh] overflow-auto">
+            <div className="max-h-[70vh] overflow-auto bg-white rounded-xl p-4 shadow-lg">
               {renderMap("w-full h-auto min-h-[600px]")}
-            </div>
-
-            {/* Legend */}
-            <div className="mt-6 flex flex-wrap justify-center gap-4 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="h-5 w-5 rounded border-2 border-green-600 bg-green-100"></div>
-                <span className="font-medium text-foreground">Lower Suites (201-205)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-5 w-5 rounded border-2 border-yellow-600 bg-yellow-100"></div>
-                <span className="font-medium text-foreground">Upper Suites</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="h-5 w-5 rounded border-2 border-gray-400 bg-gray-100"></div>
-                <span className="font-medium text-foreground">Other Seating</span>
-              </div>
             </div>
           </div>
         </div>,
