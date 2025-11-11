@@ -36,6 +36,7 @@ export default function MyListingsPage() {
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [sellingTickets, setSellingTickets] = useState<string | null>(null);
   const [ticketQuantities, setTicketQuantities] = useState<Record<string, string>>({});
+  const [salePrices, setSalePrices] = useState<Record<string, string>>({});
 
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
@@ -81,8 +82,9 @@ export default function MyListingsPage() {
     }
   };
 
-  const handleSellTickets = async (listingId: string, availableQuantity: number) => {
+  const handleSellTickets = async (listingId: string, availableQuantity: number, pricePerSeat: string) => {
     const quantityToSell = ticketQuantities[listingId];
+    const salePrice = salePrices[listingId];
 
     if (!quantityToSell || quantityToSell.trim() === '') {
       toast({
@@ -112,6 +114,21 @@ export default function MyListingsPage() {
       return;
     }
 
+    // Parse and validate sale price if provided
+    let finalSalePrice = undefined;
+    if (salePrice && salePrice.trim() !== '') {
+      const price = parseFloat(salePrice);
+      if (isNaN(price) || price < 0) {
+        toast({
+          title: "Invalid Sale Price",
+          description: "Please enter a valid sale price",
+          variant: "destructive",
+        });
+        return;
+      }
+      finalSalePrice = price;
+    }
+
     setSellingTickets(listingId);
     setError('');
 
@@ -121,7 +138,11 @@ export default function MyListingsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ listingId, quantitySold: qty }),
+        body: JSON.stringify({
+          listingId,
+          quantitySold: qty,
+          salePrice: finalSalePrice
+        }),
       });
 
       const data = await response.json();
@@ -140,8 +161,9 @@ export default function MyListingsPage() {
               : listing
           )
         );
-        // Clear the input
+        // Clear the inputs
         setTicketQuantities(prev => ({ ...prev, [listingId]: '' }));
+        setSalePrices(prev => ({ ...prev, [listingId]: '' }));
 
         // Show success toast
         const remainingTickets = data.listing.quantity;
@@ -170,7 +192,24 @@ export default function MyListingsPage() {
     }
   };
 
-  const handleMarkAllAsSold = async (listingId: string, quantity: number) => {
+  const handleMarkAllAsSold = async (listingId: string, quantity: number, pricePerSeat: string) => {
+    const salePrice = salePrices[listingId];
+
+    // Parse and validate sale price if provided
+    let finalSalePrice = undefined;
+    if (salePrice && salePrice.trim() !== '') {
+      const price = parseFloat(salePrice);
+      if (isNaN(price) || price < 0) {
+        toast({
+          title: "Invalid Sale Price",
+          description: "Please enter a valid sale price",
+          variant: "destructive",
+        });
+        return;
+      }
+      finalSalePrice = price;
+    }
+
     setUpdatingStatus(listingId);
     setError('');
 
@@ -180,7 +219,11 @@ export default function MyListingsPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ listingId, quantitySold: quantity }),
+        body: JSON.stringify({
+          listingId,
+          quantitySold: quantity,
+          salePrice: finalSalePrice
+        }),
       });
 
       const data = await response.json();
@@ -199,6 +242,9 @@ export default function MyListingsPage() {
               : listing
           )
         );
+
+        // Clear the sale price input
+        setSalePrices(prev => ({ ...prev, [listingId]: '' }));
 
         toast({
           title: "🎉 All Tickets Sold!",
@@ -648,46 +694,63 @@ export default function MyListingsPage() {
 
                       {/* Partial Sale Section */}
                       <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                        <label className="block text-xs font-medium text-gray-700 mb-1">
+                        <label className="block text-xs font-medium text-gray-700 mb-2">
                           Sell Tickets
                         </label>
-                        <div className="flex gap-2">
-                          <input
-                            type="number"
-                            min="1"
-                            max={listing.quantity}
-                            value={ticketQuantities[listing.id] || ''}
-                            onChange={(e) => setTicketQuantities(prev => ({ ...prev, [listing.id]: e.target.value }))}
-                            placeholder={`1-${listing.quantity}`}
-                            className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
-                          />
-                          <button
-                            onClick={() => handleSellTickets(listing.id, listing.quantity)}
-                            disabled={sellingTickets === listing.id}
-                            className="flex-1 px-3 py-1 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                          >
-                            {sellingTickets === listing.id ? 'Selling...' : 'Sell'}
-                          </button>
+                        <div className="flex gap-2 mb-2">
+                          <div className="flex-1">
+                            <label className="block text-[10px] text-gray-600 mb-1">Quantity</label>
+                            <input
+                              type="number"
+                              min="1"
+                              max={listing.quantity}
+                              value={ticketQuantities[listing.id] || ''}
+                              onChange={(e) => setTicketQuantities(prev => ({ ...prev, [listing.id]: e.target.value }))}
+                              placeholder={`1-${listing.quantity}`}
+                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-[10px] text-gray-600 mb-1">
+                              Sale Price (default: ${(parseFloat(listing.pricePerSeat) * (parseInt(ticketQuantities[listing.id]) || listing.quantity)).toFixed(0)})
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={salePrices[listing.id] || ''}
+                              onChange={(e) => setSalePrices(prev => ({ ...prev, [listing.id]: e.target.value }))}
+                              placeholder={`$${(parseFloat(listing.pricePerSeat) * (parseInt(ticketQuantities[listing.id]) || listing.quantity)).toFixed(0)}`}
+                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
+                            />
+                          </div>
                         </div>
+                        <button
+                          onClick={() => handleSellTickets(listing.id, listing.quantity, listing.pricePerSeat)}
+                          disabled={sellingTickets === listing.id}
+                          className="w-full px-3 py-2 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                        >
+                          {sellingTickets === listing.id ? 'Selling...' : 'Mark as Sold'}
+                        </button>
                       </div>
 
                       <div className="flex gap-2">
                         <Link
                           href={`/listing/${listing.slug}`}
-                          className="flex-1 text-center px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors text-sm"
+                          className="flex-1 flex items-center justify-center px-4 py-2 bg-gray-100 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors text-sm"
                         >
                           View
                         </Link>
                         <Link
                           href={`/sell/edit/${listing.id}`}
-                          className="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+                          className="flex-1 flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
                         >
                           Edit
                         </Link>
                         <button
-                          onClick={() => handleMarkAllAsSold(listing.id, listing.quantity)}
+                          onClick={() => handleMarkAllAsSold(listing.id, listing.quantity, listing.pricePerSeat)}
                           disabled={updatingStatus === listing.id}
-                          className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                          className="flex-1 flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                         >
                           {updatingStatus === listing.id ? 'Updating...' : 'Mark All Sold'}
                         </button>
@@ -791,13 +854,13 @@ export default function MyListingsPage() {
                       <div className="flex gap-2">
                         <Link
                           href={`/listing/${listing.slug}`}
-                          className="flex-1 text-center px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors text-sm"
+                          className="flex-1 flex items-center justify-center px-4 py-2 bg-gray-100 border border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-200 transition-colors text-sm"
                         >
                           View
                         </Link>
                         <Link
                           href={`/sell/edit/${listing.id}`}
-                          className="flex-1 text-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
+                          className="flex-1 flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors text-sm"
                         >
                           Edit
                         </Link>

@@ -17,7 +17,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { listingId, quantitySold } = body;
+    const { listingId, quantitySold, salePrice } = body;
 
     if (!listingId || !quantitySold) {
       return NextResponse.json(
@@ -77,15 +77,32 @@ export async function PATCH(request: NextRequest) {
     // Calculate new quantity
     const newQuantity = listing.quantity - qty;
 
+    // Determine actual sale price (default to asking price if not provided)
+    const actualSalePrice = salePrice !== undefined && salePrice !== null
+      ? parseFloat(salePrice)
+      : parseFloat(listing.pricePerSeat.toString()) * qty;
+
+    // Validate sale price if provided
+    if (salePrice !== undefined && salePrice !== null) {
+      const price = parseFloat(salePrice);
+      if (isNaN(price) || price < 0) {
+        return NextResponse.json(
+          { error: 'Sale price must be a valid positive number' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Prepare update data
     const updateData: any = {
       quantity: newQuantity,
     };
 
-    // If all tickets are sold, mark as SOLD
+    // If all tickets are sold, mark as SOLD and store the sale price
     if (newQuantity === 0) {
       updateData.status = 'SOLD';
       updateData.soldAt = new Date();
+      updateData.soldPriceTotal = actualSalePrice;
     }
 
     // Update the listing

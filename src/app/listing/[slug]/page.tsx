@@ -44,6 +44,10 @@ export default function ListingDetailPage() {
   const [listing, setListing] = useState<ListingDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [messageText, setMessageText] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [messageError, setMessageError] = useState('');
 
   useEffect(() => {
     if (slug) {
@@ -108,6 +112,47 @@ export default function ListingDetailPage() {
         return 'Other (see notes)';
       default:
         return method;
+    }
+  };
+
+  const handleSendMessage = async () => {
+    if (!messageText.trim()) {
+      setMessageError('Please enter a message');
+      return;
+    }
+
+    if (!listing) return;
+
+    setSendingMessage(true);
+    setMessageError('');
+
+    try {
+      const response = await fetch('/api/messages/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          listingId: listing.id,
+          message: messageText,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        // Success - close modal and reset
+        setShowMessageModal(false);
+        setMessageText('');
+        alert('Message sent successfully! The seller will receive your message.');
+      } else {
+        setMessageError(data.error || 'Failed to send message');
+      }
+    } catch (err) {
+      console.error('Error sending message:', err);
+      setMessageError('Failed to send message. Please try again.');
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -266,10 +311,22 @@ export default function ListingDetailPage() {
               </div>
 
               <div className="space-y-3">
+                {listing.allowMessages && session && listing.seller.id !== session.user?.id && (
+                  <button
+                    onClick={() => setShowMessageModal(true)}
+                    className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-foreground bg-primary px-4 text-base font-semibold text-foreground transition-all hover:bg-primary-600 active:scale-[0.98]"
+                  >
+                    <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                    </svg>
+                    Message Seller
+                  </button>
+                )}
+
                 {listing.contactEmail && (
                   <a
                     href={`mailto:${listing.contactEmail}`}
-                    className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-foreground bg-primary px-4 text-base font-semibold text-foreground transition-all hover:bg-primary-600 active:scale-[0.98]"
+                    className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-foreground bg-background px-4 text-base font-semibold text-foreground transition-all hover:bg-secondary active:scale-[0.98]"
                   >
                     <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -394,6 +451,82 @@ export default function ListingDetailPage() {
           </div>
         </div>
       </footer>
+
+      {/* Message Modal */}
+      {showMessageModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-gray-900">Message Seller</h2>
+                <button
+                  onClick={() => {
+                    setShowMessageModal(false);
+                    setMessageText('');
+                    setMessageError('');
+                  }}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-600 mb-1">Listing:</p>
+                <p className="font-semibold text-gray-900">{listing?.eventTitle}</p>
+                <p className="text-sm text-gray-600 mt-1">
+                  {listing?.suite && `${getSuiteAreaName(listing.suite.area)} - Suite ${listing.suite.displayName}`}
+                </p>
+              </div>
+
+              {messageError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                  {messageError}
+                </div>
+              )}
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Your Message
+                </label>
+                <textarea
+                  value={messageText}
+                  onChange={(e) => setMessageText(e.target.value)}
+                  placeholder="Ask about the tickets, delivery, or anything else..."
+                  rows={6}
+                  maxLength={2000}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                />
+                <p className="text-sm text-gray-500 mt-1 text-right">
+                  {messageText.length}/2000 characters
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowMessageModal(false);
+                    setMessageText('');
+                    setMessageError('');
+                  }}
+                  className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSendMessage}
+                  disabled={sendingMessage || !messageText.trim()}
+                  className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {sendingMessage ? 'Sending...' : 'Send Message'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
