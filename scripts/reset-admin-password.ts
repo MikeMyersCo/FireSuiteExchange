@@ -1,0 +1,75 @@
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+
+const prisma = new PrismaClient();
+
+async function resetAdminPassword() {
+  try {
+    console.log('🔐 Resetting admin password...\n');
+
+    // Find the admin user
+    const adminUser = await prisma.user.findUnique({
+      where: { email: 'mikemyersco@gmail.com' }
+    });
+
+    if (!adminUser) {
+      console.log('❌ Admin user not found!');
+      console.log('Creating admin user...\n');
+
+      // Create admin user if doesn't exist
+      const passwordHash = await bcrypt.hash('FireSuite2025!', 10);
+
+      const newUser = await prisma.user.create({
+        data: {
+          email: 'mikemyersco@gmail.com',
+          name: 'Admin User',
+          passwordHash: passwordHash,
+          role: 'ADMIN',
+          isLocked: false,
+          emailVerified: new Date(),
+        },
+      });
+
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('✅ Admin user created successfully!');
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      console.log('📧 Email: mikemyersco@gmail.com');
+      console.log('🔑 Password: FireSuite2025!');
+      console.log('👑 Role: ADMIN');
+      console.log('🆔 User ID:', newUser.id);
+      console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+      return;
+    }
+
+    // Hash the new password
+    const newPasswordHash = await bcrypt.hash('FireSuite2025!', 10);
+
+    // Update the password
+    await prisma.user.update({
+      where: { id: adminUser.id },
+      data: {
+        passwordHash: newPasswordHash,
+        isLocked: false // Ensure account is not locked
+      }
+    });
+
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('✅ Admin password reset successfully!');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📧 Email: mikemyersco@gmail.com');
+    console.log('🔑 New Password: FireSuite2025!');
+    console.log('👑 Role:', adminUser.role);
+    console.log('🆔 User ID:', adminUser.id);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    console.log('🔓 Account unlocked and ready to use!');
+    console.log('');
+
+  } catch (error) {
+    console.error('❌ Error resetting password:', error);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+resetAdminPassword();

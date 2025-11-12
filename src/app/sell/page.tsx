@@ -19,12 +19,16 @@ export default function SellPage() {
   const [loadingSuites, setLoadingSuites] = useState(true);
   const [userSettings, setUserSettings] = useState<any>(null);
 
+  // V Section specific state
+  const [vSectionRow, setVSectionRow] = useState('A');
+  const [vSectionStartSeat, setVSectionStartSeat] = useState('1');
+
   const [formData, setFormData] = useState({
     suiteId: '',
     eventTitle: '',
     eventDate: '',
     eventTime: '',
-    quantity: '8',
+    quantity: '2', // Default to 2 for V sections
     pricePerSeat: '',
     deliveryMethod: 'MOBILE_TRANSFER',
     contactEmail: '',
@@ -33,7 +37,7 @@ export default function SellPage() {
     contactMessenger: '',
     allowMessages: false,
     notes: '',
-    seatNumbers: '1-8',
+    seatNumbers: '', // Will be set based on suite type
   });
 
   useEffect(() => {
@@ -48,6 +52,17 @@ export default function SellPage() {
       fetchVerifiedSuites();
     }
   }, [status, session, router]);
+
+  // Helper function to calculate V section seat numbers
+  const calculateVSectionSeats = (row: string, startSeat: string, quantity: string): string => {
+    const start = parseInt(startSeat);
+    const qty = parseInt(quantity);
+    if (isNaN(start) || isNaN(qty) || qty < 1) {
+      return '';
+    }
+    const end = start + qty - 1;
+    return `Row ${row}, Seats ${start}-${end}`;
+  };
 
   const fetchUserSettings = async () => {
     try {
@@ -83,7 +98,14 @@ export default function SellPage() {
 
         // Auto-select first suite if only one verified
         if (approved.length === 1) {
-          setFormData(prev => ({ ...prev, suiteId: approved[0].suiteId }));
+          const firstSuite = approved[0];
+          const isVSection = firstSuite?.suite?.area === 'V';
+          setFormData(prev => ({
+            ...prev,
+            suiteId: firstSuite.suiteId,
+            quantity: isVSection ? '2' : '8',
+            seatNumbers: isVSection ? calculateVSectionSeats('A', '1', '2') : '1-8',
+          }));
         }
       } else {
         console.error('Failed to fetch applications:', response.status);
@@ -122,7 +144,60 @@ export default function SellPage() {
           }));
         }
       }
+
+      // Update seat numbers format when suite is selected
+      if (name === 'suiteId') {
+        const selectedSuite = verifiedSuites.find(app => app.suiteId === value);
+        const isVSection = selectedSuite?.suite?.area === 'V';
+
+        setFormData(prev => ({
+          ...prev,
+          suiteId: value,
+          quantity: isVSection ? '2' : '8',
+          seatNumbers: isVSection ? calculateVSectionSeats('A', '1', '2') : '1-8',
+        }));
+
+        // Reset V section state when switching suites
+        if (isVSection) {
+          setVSectionRow('A');
+          setVSectionStartSeat('1');
+        }
+      }
+
+      // Recalculate seat numbers when quantity changes for V sections
+      if (name === 'quantity') {
+        const selectedSuite = verifiedSuites.find(app => app.suiteId === formData.suiteId);
+        const isVSection = selectedSuite?.suite?.area === 'V';
+
+        if (isVSection) {
+          setFormData(prev => ({
+            ...prev,
+            quantity: value,
+            seatNumbers: calculateVSectionSeats(vSectionRow, vSectionStartSeat, value),
+          }));
+        }
+      }
     }
+  };
+
+  // Handler for V section row dropdown
+  const handleVSectionRowChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newRow = e.target.value;
+    setVSectionRow(newRow);
+    setFormData(prev => ({
+      ...prev,
+      seatNumbers: calculateVSectionSeats(newRow, vSectionStartSeat, formData.quantity),
+    }));
+  };
+
+  // Handler for V section start seat dropdown
+  const handleVSectionStartSeatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStartSeat = e.target.value;
+    setVSectionStartSeat(newStartSeat);
+    setFormData(prev => ({
+      ...prev,
+      seatNumbers: calculateVSectionSeats(vSectionRow, newStartSeat, formData.quantity),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -445,15 +520,67 @@ export default function SellPage() {
                 <label htmlFor="seatNumbers" className="block text-sm font-medium text-gray-700 mb-2">
                   Seat Numbers (optional)
                 </label>
-                <input
-                  id="seatNumbers"
-                  name="seatNumbers"
-                  type="text"
-                  value={formData.seatNumbers}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="e.g., 1, 2, 3, 4"
-                />
+                {(() => {
+                  const selectedSuite = verifiedSuites.find(app => app.suiteId === formData.suiteId);
+                  const isVSection = selectedSuite?.suite?.area === 'V';
+
+                  return isVSection ? (
+                    <div className="space-y-3">
+                      <p className="text-xs text-gray-600">V Sections have rows A-C and seats 1-13</p>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="vSectionRow" className="block text-xs font-medium text-gray-700 mb-1">
+                            Row
+                          </label>
+                          <select
+                            id="vSectionRow"
+                            value={vSectionRow}
+                            onChange={handleVSectionRowChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label htmlFor="vSectionStartSeat" className="block text-xs font-medium text-gray-700 mb-1">
+                            Start Seat
+                          </label>
+                          <select
+                            id="vSectionStartSeat"
+                            value={vSectionStartSeat}
+                            onChange={handleVSectionStartSeatChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
+                              <option key={num} value={num}>{num}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Display calculated seat range */}
+                      <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                          <span className="font-semibold">Selected seats:</span> {formData.seatNumbers || 'Row A, Seats 1-2'}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <input
+                      id="seatNumbers"
+                      name="seatNumbers"
+                      type="text"
+                      value={formData.seatNumbers}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="e.g., 1, 2, 3, 4"
+                    />
+                  );
+                })()}
               </div>
 
               <div>

@@ -39,6 +39,8 @@ function formatSuiteArea(area: string): string {
       return 'North Terrace';
     case 'UST':
       return 'South Terrace';
+    case 'V':
+      return 'V Sections';
     default:
       return area;
   }
@@ -205,6 +207,7 @@ function BrowseContent() {
     L: allListings.filter(l => l.suiteArea === 'L').length,
     UNT: allListings.filter(l => l.suiteArea === 'UNT').length,
     UST: allListings.filter(l => l.suiteArea === 'UST').length,
+    V: allListings.filter(l => l.suiteArea === 'V').length,
   };
 
   return (
@@ -478,6 +481,7 @@ function BrowseContent() {
                   <option value="L">Lower Bowl ({suiteAreaCounts.L})</option>
                   <option value="UNT">North Terrace ({suiteAreaCounts.UNT})</option>
                   <option value="UST">South Terrace ({suiteAreaCounts.UST})</option>
+                  <option value="V">V Sections ({suiteAreaCounts.V})</option>
                 </select>
               </div>
 
@@ -582,7 +586,7 @@ function BrowseContent() {
                     {formatSuiteArea(listing.suiteArea)}
                   </p>
                   <p className="text-xs font-bold leading-tight text-black">
-                    Suite {listing.suiteNumber}
+                    {listing.suiteArea === 'V' ? `V-${listing.suiteNumber}` : `Suite ${listing.suiteNumber}`}
                   </p>
                 </div>
                 <div className="flex flex-1 flex-col p-4">

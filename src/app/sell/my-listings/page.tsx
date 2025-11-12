@@ -13,6 +13,7 @@ interface Listing {
   eventTitle: string;
   eventDatetime: string;
   quantity: number;
+  originalQuantity: number;
   pricePerSeat: string;
   deliveryMethod: string;
   status: string;
@@ -357,6 +358,8 @@ export default function MyListingsPage() {
         return 'Upper North Terrace';
       case 'UST':
         return 'Upper South Terrace';
+      case 'V':
+        return 'V Sections';
       default:
         return area;
     }
@@ -663,7 +666,7 @@ export default function MyListingsPage() {
                         {formatSuiteArea(listing.suite.area)}
                       </p>
                       <p className="text-xs font-bold text-black">
-                        Suite {listing.suite.number}
+                        {listing.suite.area === 'V' ? `V-${listing.suite.number}` : `Suite ${listing.suite.number}`}
                       </p>
                     </div>
                     <div className="p-4">
@@ -682,7 +685,7 @@ export default function MyListingsPage() {
                           })}
                         </p>
                         <p>
-                          <span className="font-medium">Available:</span> {listing.quantity} seats
+                          <span className="font-medium">Available:</span> {listing.quantity} of {listing.originalQuantity} seats
                         </p>
                         <p>
                           <span className="font-medium">Price:</span> ${listing.pricePerSeat} per seat
@@ -793,7 +796,7 @@ export default function MyListingsPage() {
                         {formatSuiteArea(listing.suite.area)}
                       </p>
                       <p className="text-xs font-bold text-gray-700">
-                        Suite {listing.suite.number}
+                        {listing.suite.area === 'V' ? `V-${listing.suite.number}` : `Suite ${listing.suite.number}`}
                       </p>
                     </div>
                     <div className="p-4">
@@ -886,7 +889,7 @@ export default function MyListingsPage() {
                         {formatSuiteArea(listing.suite.area)}
                       </p>
                       <p className="text-xs font-bold text-gray-700">
-                        Suite {listing.suite.number}
+                        {listing.suite.area === 'V' ? `V-${listing.suite.number}` : `Suite ${listing.suite.number}`}
                       </p>
                     </div>
                     <div className="p-4">
@@ -907,7 +910,7 @@ export default function MyListingsPage() {
                           })}
                         </p>
                         <p>
-                          {listing.quantity} seats × ${listing.pricePerSeat}
+                          {listing.quantity} of {listing.originalQuantity} seats × ${listing.pricePerSeat}
                         </p>
                       </div>
                     </div>

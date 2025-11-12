@@ -131,6 +131,7 @@ model Listing {
   eventTitle         String         @map("event_title")
   eventDatetime      DateTime       @map("event_datetime")
   quantity           Int
+  originalQuantity   Int            @default(8) @map("original_quantity") // Tracks initial quantity when listing was created
   pricePerSeat       Decimal        @map("price_per_seat") @db.Decimal(10, 2)
   deliveryMethod     DeliveryMethod @map("delivery_method")
   contactEmail       String?        @map("contact_email")

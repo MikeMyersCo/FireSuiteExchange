@@ -21,6 +21,10 @@ export default function EditListingPage() {
   const [success, setSuccess] = useState('');
   const [verifiedSuites, setVerifiedSuites] = useState<any[]>([]);
 
+  // V Section specific state
+  const [vSectionRow, setVSectionRow] = useState('A');
+  const [vSectionStartSeat, setVSectionStartSeat] = useState('1');
+
   const [formData, setFormData] = useState({
     suiteId: '',
     eventTitle: '',
@@ -49,6 +53,26 @@ export default function EditListingPage() {
       fetchListing();
     }
   }, [status, session, router, listingId]);
+
+  // Helper function to calculate V section seat numbers
+  const calculateVSectionSeats = (row: string, startSeat: string, quantity: string): string => {
+    const start = parseInt(startSeat);
+    const qty = parseInt(quantity);
+    if (isNaN(start) || isNaN(qty) || qty < 1) {
+      return '';
+    }
+    const end = start + qty - 1;
+    return `Row ${row}, Seats ${start}-${end}`;
+  };
+
+  // Helper function to parse V section seat numbers (e.g., "Row A, Seats 1-2")
+  const parseVSectionSeats = (seatNumbers: string): { row: string; startSeat: string } => {
+    const match = seatNumbers.match(/Row ([ABC]), Seats (\d+)-\d+/);
+    if (match) {
+      return { row: match[1], startSeat: match[2] };
+    }
+    return { row: 'A', startSeat: '1' };
+  };
 
   const fetchVerifiedSuites = async () => {
     try {
@@ -81,6 +105,14 @@ export default function EditListingPage() {
       const eventDate = new Date(listing.eventDatetime);
       const dateStr = eventDate.toISOString().split('T')[0];
       const timeStr = eventDate.toTimeString().substring(0, 5);
+
+      // Check if this is a V section and parse seat numbers
+      const isVSection = listing.suite?.area === 'V';
+      if (isVSection && listing.seatNumbers) {
+        const parsed = parseVSectionSeats(listing.seatNumbers);
+        setVSectionRow(parsed.row);
+        setVSectionStartSeat(parsed.startSeat);
+      }
 
       setFormData({
         suiteId: listing.suiteId,
@@ -130,7 +162,41 @@ export default function EditListingPage() {
           }));
         }
       }
+
+      // Recalculate seat numbers when quantity changes for V sections
+      if (name === 'quantity') {
+        const selectedSuite = verifiedSuites.find(app => app.suiteId === formData.suiteId);
+        const isVSection = selectedSuite?.suite?.area === 'V';
+
+        if (isVSection) {
+          setFormData(prev => ({
+            ...prev,
+            quantity: value,
+            seatNumbers: calculateVSectionSeats(vSectionRow, vSectionStartSeat, value),
+          }));
+        }
+      }
     }
+  };
+
+  // Handler for V section row dropdown
+  const handleVSectionRowChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newRow = e.target.value;
+    setVSectionRow(newRow);
+    setFormData(prev => ({
+      ...prev,
+      seatNumbers: calculateVSectionSeats(newRow, vSectionStartSeat, formData.quantity),
+    }));
+  };
+
+  // Handler for V section start seat dropdown
+  const handleVSectionStartSeatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newStartSeat = e.target.value;
+    setVSectionStartSeat(newStartSeat);
+    setFormData(prev => ({
+      ...prev,
+      seatNumbers: calculateVSectionSeats(vSectionRow, newStartSeat, formData.quantity),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -393,15 +459,67 @@ export default function EditListingPage() {
                 <label htmlFor="seatNumbers" className="block text-sm font-medium text-gray-700 mb-2">
                   Seat Numbers (optional)
                 </label>
-                <input
-                  id="seatNumbers"
-                  name="seatNumbers"
-                  type="text"
-                  value={formData.seatNumbers}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="e.g., 1, 2, 3, 4"
-                />
+                {(() => {
+                  const selectedSuite = verifiedSuites.find(app => app.suiteId === formData.suiteId);
+                  const isVSection = selectedSuite?.suite?.area === 'V';
+
+                  return isVSection ? (
+                    <div className="space-y-3">
+                      <p className="text-xs text-gray-600">V Sections have rows A-C and seats 1-13</p>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="vSectionRow" className="block text-xs font-medium text-gray-700 mb-1">
+                            Row
+                          </label>
+                          <select
+                            id="vSectionRow"
+                            value={vSectionRow}
+                            onChange={handleVSectionRowChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label htmlFor="vSectionStartSeat" className="block text-xs font-medium text-gray-700 mb-1">
+                            Start Seat
+                          </label>
+                          <select
+                            id="vSectionStartSeat"
+                            value={vSectionStartSeat}
+                            onChange={handleVSectionStartSeatChange}
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            {Array.from({ length: 13 }, (_, i) => i + 1).map(num => (
+                              <option key={num} value={num}>{num}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Display calculated seat range */}
+                      <div className="px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                          <span className="font-semibold">Selected seats:</span> {formData.seatNumbers || 'Row A, Seats 1-2'}
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <input
+                      id="seatNumbers"
+                      name="seatNumbers"
+                      type="text"
+                      value={formData.seatNumbers}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="e.g., 1, 2, 3, 4"
+                    />
+                  );
+                })()}
               </div>
 
               <div>

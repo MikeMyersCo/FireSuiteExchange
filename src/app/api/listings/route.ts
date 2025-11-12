@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
         eventTitle,
         eventDatetime: new Date(eventDatetime),
         quantity: parseInt(quantity),
+        originalQuantity: parseInt(quantity), // Store the original quantity for tracking
         pricePerSeat,
         deliveryMethod,
         contactEmail: contactEmail || session.user.email,

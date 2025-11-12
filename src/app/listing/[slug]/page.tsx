@@ -93,6 +93,8 @@ export default function ListingDetailPage() {
         return 'Upper North Terrace';
       case 'UST':
         return 'Upper South Terrace';
+      case 'V':
+        return 'V Sections';
       default:
         return area;
     }
@@ -262,7 +264,7 @@ export default function ListingDetailPage() {
                   </svg>
                   <div>
                     <div className="font-medium text-foreground">Suite Location</div>
-                    <div>{getSuiteAreaName(listing.suite.area)} - Suite {listing.suite.displayName}</div>
+                    <div>{getSuiteAreaName(listing.suite.area)} - {listing.suite.area === 'V' ? `V-${listing.suite.number}` : `Suite ${listing.suite.displayName}`}</div>
                   </div>
                 </div>
 
