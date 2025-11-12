@@ -102,6 +102,16 @@ async function main() {
     });
   }
 
+  // V Sections (V101-V117)
+  for (let i = 101; i <= 117; i++) {
+    suitesToCreate.push({
+      area: 'V' as any,
+      number: i,
+      displayName: `V${i}`,
+      capacity: 8,
+    });
+  }
+
   // Create suites with upsert to avoid duplicates
   for (const suite of suitesToCreate) {
     await prisma.suite.upsert({
@@ -123,8 +133,8 @@ async function main() {
     orderBy: [{ area: 'asc' }, { number: 'asc' }],
   });
 
-  // Create 60 fake users with verified suites distributed across all areas
-  console.log('👥 Creating 60 fake users with suite ownership...\n');
+  // Create fake users with verified suites distributed across all areas
+  console.log('👥 Creating fake users with suite ownership...\n');
   const users = [];
   const hashedPassword = await bcrypt.hash('password123', 10);
 
@@ -132,6 +142,7 @@ async function main() {
   const lowerSuites = allSuites.filter(s => s.area === 'L');
   const northSuites = allSuites.filter(s => s.area === 'UNT');
   const southSuites = allSuites.filter(s => s.area === 'UST');
+  const vSuites = allSuites.filter(s => s.area === 'V');
 
   // Create 30 Lower Bowl owners
   for (let i = 0; i < 30; i++) {
@@ -167,10 +178,10 @@ async function main() {
       },
     });
 
-    console.log(`  ✓ ${i + 1}/60: ${user.name} owns Suite ${suite.displayName}`);
+    console.log(`  ✓ ${i + 1}/30: ${user.name} owns Suite ${suite.displayName}`);
   }
 
-  // Create 15 North Terrace owners
+  // Create 15 Upper North Terrace owners (UNT1-UNT20)
   for (let i = 0; i < 15; i++) {
     const idx = 30 + i;
     const firstName = firstNames[idx % firstNames.length];
@@ -205,10 +216,10 @@ async function main() {
       },
     });
 
-    console.log(`  ✓ ${idx + 1}/60: ${user.name} owns Suite ${suite.displayName}`);
+    console.log(`  ✓ ${idx + 1}/62: ${user.name} owns Suite ${suite.displayName}`);
   }
 
-  // Create 15 South Terrace owners
+  // Create 15 Upper South Terrace owners (UST1-UST20)
   for (let i = 0; i < 15; i++) {
     const idx = 45 + i;
     const firstName = firstNames[idx % firstNames.length];
@@ -243,7 +254,45 @@ async function main() {
       },
     });
 
-    console.log(`  ✓ ${idx + 1}/60: ${user.name} owns Suite ${suite.displayName}`);
+    console.log(`  ✓ ${idx + 1}/62: ${user.name} owns Suite ${suite.displayName}`);
+  }
+
+  // Create 17 V Sections owners (V101-V117)
+  for (let i = 0; i < 17; i++) {
+    const idx = 60 + i;
+    const firstName = firstNames[idx % firstNames.length];
+    const lastName = lastNames[Math.floor(idx / firstNames.length) % lastNames.length];
+    const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${idx}@example.com`;
+    const phone = generatePhone();
+
+    const user = await prisma.user.create({
+      data: {
+        email,
+        passwordHash: hashedPassword,
+        role: 'SELLER',
+        name: `${firstName} ${lastName}`,
+        phone,
+        emailVerified: new Date(),
+      },
+    });
+
+    users.push(user);
+
+    const suite = vSuites[i % vSuites.length];
+
+    await prisma.sellerApplication.create({
+      data: {
+        userId: user.id,
+        suiteId: suite.id,
+        status: 'APPROVED',
+        legalName: user.name!,
+        message: 'I am a season ticket holder for this suite.',
+        verifiedAt: new Date(),
+        decidedAt: new Date(),
+      },
+    });
+
+    console.log(`  ✓ ${idx + 1}/77: ${user.name} owns Suite ${suite.displayName}`);
   }
 
   console.log('\n✅ Users and suite applications created\n');
@@ -336,7 +385,11 @@ async function main() {
 
   console.log('📊 Summary:');
   console.log(`   • ${allSuites.length} Fire Suites`);
-  console.log(`   • 60 verified suite owners (30 Lower Bowl, 15 North Terrace, 15 South Terrace)`);
+  console.log(`   • 77 verified suite owners:`);
+  console.log(`     - 30 Lower Bowl (L1-L90)`);
+  console.log(`     - 15 Upper North Terrace (UNT1-UNT20)`);
+  console.log(`     - 15 Upper South Terrace (UST1-UST20)`);
+  console.log(`     - 17 V Sections (V101-V117)`);
   console.log(`   • ${listingCount} active listings`);
   console.log(`   • ${EVENTS_2026.length} different concerts`);
   console.log(`   • Prices range from $100-$300 per seat`);

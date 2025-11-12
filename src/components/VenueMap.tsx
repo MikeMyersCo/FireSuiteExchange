@@ -41,8 +41,9 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
   // Define section groups by area
   const sectionGroups = {
     L: ['201', '202', '203', '204', '205'], // Lower Suites Fire Suites
-    UNT: ['V101', 'V102', 'V104', 'V106', 'V107', 'V108', 'V109'], // North Terrace
-    UST: ['V110', 'V112', 'V113', 'V115', 'V116', 'V117', 'V118'], // South Terrace
+    UNT: [], // Upper North Terrace (separate from V sections)
+    UST: [], // Upper South Terrace (separate from V sections)
+    V: ['V101', 'V102', 'V104', 'V106', 'V107', 'V108', 'V109', 'V110', 'V112', 'V113', 'V115', 'V116', 'V117'], // V Sections (V101-V117)
   };
 
   const handleSectionClick = (area: string) => {
@@ -102,57 +103,57 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
 
         {/* Left side V-sections (V101, V102, V103) - angled on left terrace */}
         {/* V101 */}
-        <rect x="155" y="192" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V101-104')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="155" y="192" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V102 */}
-        <rect x="195" y="165" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V101-104')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="195" y="165" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V103 */}
-        <rect x="232" y="145" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V101-104')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="232" y="145" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
-        {/* Top row V-sections (V104-V113) - horizontal across top */}
+        {/* Top row V-sections (V104-V117) */}
         {/* V104 */}
-        <rect x="265" y="140" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V101-104')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="265" y="140" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V105 */}
-        <rect x="297" y="137" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UNT')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="297" y="137" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V106 */}
-        <rect x="329" y="136" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UNT')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="329" y="136" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V107 */}
-        <rect x="361" y="135" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UNT')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="361" y="135" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V108 */}
-        <rect x="393" y="134" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UNT')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="393" y="134" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V109 */}
-        <rect x="425" y="134" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UNT')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="425" y="134" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V110 */}
-        <rect x="457" y="134" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="457" y="134" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V111 */}
-        <rect x="489" y="134" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="489" y="134" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V112 */}
-        <rect x="521" y="135" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="521" y="135" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V113 */}
-        <rect x="553" y="136" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="553" y="136" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* Right side V-sections (V114-V117) - angled on right terrace */}
         {/* V114 */}
-        <rect x="620" y="145" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="620" y="145" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V115 */}
-        <rect x="655" y="165" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="655" y="165" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V116 */}
-        <rect x="693" y="188" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="693" y="188" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* V117 */}
-        <rect x="728" y="212" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('UST')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
+        <rect x="728" y="212" width="24" height="14" fill="transparent" onClick={() => handleSectionClick('V')} className="cursor-pointer" style={{ pointerEvents: 'auto' }} />
 
         {/* Lower Bowl Suites (201-205) */}
 
@@ -211,24 +212,24 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
           style={{ pointerEvents: 'auto' }}
         />
 
-        {/* North Terrace - Left side green area with V101-V103 */}
+        {/* V Sections - Left side area with V101-V109 */}
         <polygon
           points="120,125 145,175 200,230 245,220 270,175 230,140 180,120"
           fill="transparent"
           stroke="transparent"
           strokeWidth="0"
-          onClick={() => handleSectionClick('UNT')}
+          onClick={() => handleSectionClick('V')}
           className="cursor-pointer"
           style={{ pointerEvents: 'auto' }}
         />
 
-        {/* South Terrace - Right side green area with V114-V117 */}
+        {/* V Sections - Right side area with V110-V117 */}
         <polygon
           points="605,175 630,220 685,230 740,175 760,125 700,120 650,140"
           fill="transparent"
           stroke="transparent"
           strokeWidth="0"
-          onClick={() => handleSectionClick('UST')}
+          onClick={() => handleSectionClick('V')}
           className="cursor-pointer"
           style={{ pointerEvents: 'auto' }}
         />

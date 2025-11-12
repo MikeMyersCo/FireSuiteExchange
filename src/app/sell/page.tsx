@@ -319,11 +319,18 @@ export default function SellPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select a suite</option>
-                  {verifiedSuites.map((app) => (
-                    <option key={app.id} value={app.suiteId}>
-                      {app.suite.displayName} - {app.suite.area === 'L' ? 'Lower Fire Suite' : app.suite.area === 'UNT' ? 'Upper North Terrace' : 'Upper South Terrace'}
-                    </option>
-                  ))}
+                  {verifiedSuites.map((app) => {
+                    const areaName =
+                      app.suite.area === 'L' ? 'Lower Fire Suite' :
+                      app.suite.area === 'UNT' ? 'Upper North Terrace' :
+                      app.suite.area === 'UST' ? 'Upper South Terrace' :
+                      app.suite.area === 'V' ? 'V Sections' : '';
+                    return (
+                      <option key={app.id} value={app.suiteId}>
+                        {app.suite.displayName} - {areaName}
+                      </option>
+                    );
+                  })}
                 </select>
                 <p className="mt-1 text-xs text-gray-600">
                   You can only list tickets for suites you own. {verifiedSuites.length > 1 ? `You have ${verifiedSuites.length} verified suites.` : ''}

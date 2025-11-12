@@ -213,6 +213,7 @@ export default function VerifySuitePage() {
                       {app.suite.area === 'L' && 'Lower'}
                       {app.suite.area === 'UNT' && 'Upper North'}
                       {app.suite.area === 'UST' && 'Upper South'}
+                      {app.suite.area === 'V' && 'V Sections'}
                     </div>
                   </div>
                 ))}
@@ -287,7 +288,7 @@ export default function VerifySuitePage() {
                   <option value="">Select an area</option>
                   {SUITE_DATA.areas.map(area => (
                     <option key={area.id} value={area.id}>
-                      {area.name} ({area.prefix}1-{area.prefix}{area.suites.length})
+                      {area.name} ({area.prefix}{area.suites[0]}-{area.prefix}{area.suites[area.suites.length - 1]})
                     </option>
                   ))}
                 </select>

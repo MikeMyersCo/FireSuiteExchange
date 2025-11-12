@@ -21,6 +21,7 @@ enum SuiteArea {
   L    // Lower Fire Suite (1-90)
   UNT  // Upper North Terrace (1-20)
   UST  // Upper South Terrace (1-20)
+  V    // V Sections (V101-V117)
 }
 
 enum ApplicationStatus {

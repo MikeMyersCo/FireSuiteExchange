@@ -7,6 +7,7 @@ export const SUITE_AREAS = {
   L: 'Lower Fire Suite',
   UNT: 'Upper North Terrace',
   UST: 'Upper South Terrace',
+  V: 'V Sections',
 } as const;
 
 export const DELIVERY_METHODS = {
@@ -54,6 +55,13 @@ export const SUITE_DATA = {
       prefix: 'UST',
       suites: Array.from({ length: 20 }, (_, i) => i + 1),
       color: '#8B5CF6', // violet-500
+    },
+    {
+      id: 'V',
+      name: 'V Sections',
+      prefix: 'V',
+      suites: Array.from({ length: 17 }, (_, i) => i + 101), // V101-V117
+      color: '#10B981', // emerald-500
     },
   ],
 };
