@@ -432,7 +432,7 @@ export default function OwnersPage() {
                     <div className="flex gap-4">
                       {/* Avatar */}
                       <Avatar className="h-10 w-10 shrink-0 bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-semibold">
-                        {discussion.author.name?.charAt(0).toUpperCase() || 'A'}
+                        {discussion.title.charAt(0).toUpperCase() || 'A'}
                       </Avatar>
 
                       {/* Content */}
