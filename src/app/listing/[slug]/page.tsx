@@ -117,6 +117,32 @@ export default function ListingDetailPage() {
     }
   };
 
+  const buildMailtoLink = (listing: ListingDetails) => {
+    const subject = `Inquiry about ${listing.eventTitle} tickets`;
+
+    const suiteDisplay = listing.suite.area === 'V'
+      ? `V-${listing.suite.number}`
+      : `Suite ${listing.suite.displayName}`;
+
+    const body = `Hi,
+
+I'm interested in your tickets for the following event:
+
+Event: ${listing.eventTitle}
+Date: ${formatDate(listing.eventDatetime)}
+Suite: ${getSuiteAreaName(listing.suite.area)} - ${suiteDisplay}
+Available Seats: ${listing.quantity}${listing.seatNumbers ? `\nSeat Numbers: ${listing.seatNumbers}` : ''}
+Price per Seat: $${listing.pricePerSeat}
+Total Price: $${(parseFloat(listing.pricePerSeat) * listing.quantity).toFixed(2)}
+Delivery Method: ${getDeliveryMethodName(listing.deliveryMethod)}${listing.notes ? `\n\nSeller Notes:\n${listing.notes}` : ''}
+
+Please let me know if these tickets are still available and how we can proceed with the purchase.
+
+Thank you!`;
+
+    return `mailto:${listing.contactEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+
   const handleSendMessage = async () => {
     if (!messageText.trim()) {
       setMessageError('Please enter a message');
@@ -327,7 +353,7 @@ export default function ListingDetailPage() {
 
                 {listing.contactEmail && (
                   <a
-                    href={`mailto:${listing.contactEmail}`}
+                    href={buildMailtoLink(listing)}
                     className="flex h-12 w-full items-center justify-center rounded-xl border-2 border-foreground bg-background px-4 text-base font-semibold text-foreground transition-all hover:bg-secondary active:scale-[0.98]"
                   >
                     <svg className="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

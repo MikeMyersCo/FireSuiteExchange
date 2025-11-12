@@ -63,6 +63,7 @@ function BrowseContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showVenueMap, setShowVenueMap] = useState(false);
   const [showEventPicker, setShowEventPicker] = useState(false);
+  const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc'>('default');
 
   useEffect(() => {
     setMounted(true);
@@ -199,8 +200,15 @@ function BrowseContent() {
       });
     }
 
+    // Apply sorting
+    if (sortBy === 'price-asc') {
+      filtered = [...filtered].sort((a, b) => parseFloat(a.pricePerSeat) - parseFloat(b.pricePerSeat));
+    } else if (sortBy === 'price-desc') {
+      filtered = [...filtered].sort((a, b) => parseFloat(b.pricePerSeat) - parseFloat(a.pricePerSeat));
+    }
+
     setListings(filtered);
-  }, [selectedEvent, selectedSuiteArea, searchQuery, showOnlyMyListings, allListings, session]);
+  }, [selectedEvent, selectedSuiteArea, searchQuery, showOnlyMyListings, allListings, session, sortBy]);
 
   // Calculate suite area counts
   const suiteAreaCounts = {
@@ -482,6 +490,19 @@ function BrowseContent() {
                   <option value="UNT">North Terrace ({suiteAreaCounts.UNT})</option>
                   <option value="UST">South Terrace ({suiteAreaCounts.UST})</option>
                   <option value="V">V Sections ({suiteAreaCounts.V})</option>
+                </select>
+              </div>
+
+              {/* Sort By Dropdown */}
+              <div className="sm:w-48">
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'default' | 'price-asc' | 'price-desc')}
+                  className="w-full rounded-lg border-2 border-border bg-background py-2.5 px-4 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                >
+                  <option value="default">Sort by: Default</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
                 </select>
               </div>
 
