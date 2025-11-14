@@ -39,6 +39,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fetch active and sold listings
+    // Only show listings where the seller has an APPROVED application for that suite
     const listings = await db.listing.findMany({
       where,
       include: {
@@ -48,6 +49,15 @@ export async function GET(request: NextRequest) {
             name: true,
             email: true,
             phone: true,
+            sellerApplications: {
+              where: {
+                status: 'APPROVED',
+              },
+              select: {
+                suiteId: true,
+                status: true,
+              },
+            },
           },
         },
         suite: true,
@@ -61,11 +71,18 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Filter out listings where the seller doesn't have an approved application for that suite
+    const validListings = listings.filter((listing) => {
+      return listing.seller.sellerApplications.some(
+        (app) => app.suiteId === listing.suiteId && app.status === 'APPROVED'
+      );
+    });
+
     // Transform listings - use listing ID as key to preserve all listings
     const suiteContacts: Record<string, any> = {};
     const highlightedSuites: string[] = [];
 
-    for (const listing of listings) {
+    for (const listing of validListings) {
       const mapArea = mapSuiteAreaToMapArea(listing.suite.area);
       const suiteKey = `${mapArea}:${listing.suite.number}`;
 

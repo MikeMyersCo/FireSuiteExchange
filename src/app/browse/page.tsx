@@ -6,6 +6,9 @@ import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import EventsCalendar from '@/components/EventsCalendar';
 import VenueMap from '@/components/VenueMap';
+import BottomNav from '@/components/BottomNav';
+import { ListingGridSkeleton } from '@/components/LoadingSkeleton';
+import { useShare } from '@/hooks/useShare';
 import { createPortal } from 'react-dom';
 
 interface ListingData {
@@ -55,7 +58,6 @@ function BrowseContent() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
   const [selectedSuiteArea, setSelectedSuiteArea] = useState<string | null>(null);
-  const [showVerifiedModal, setShowVerifiedModal] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [hasVerifiedSuites, setHasVerifiedSuites] = useState(false);
   const [pendingCount, setPendingCount] = useState<number>(0);
@@ -64,10 +66,37 @@ function BrowseContent() {
   const [showVenueMap, setShowVenueMap] = useState(false);
   const [showEventPicker, setShowEventPicker] = useState(false);
   const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc'>('default');
+  const [dateFilter, setDateFilter] = useState<'all' | 'today' | 'weekend' | 'month'>('all');
+  const [savedListings, setSavedListings] = useState<Set<string>>(new Set());
+  const { share, canShare } = useShare();
 
   useEffect(() => {
     setMounted(true);
+    // Load saved listings from localStorage
+    const saved = localStorage.getItem('savedListings');
+    if (saved) {
+      setSavedListings(new Set(JSON.parse(saved)));
+    }
   }, []);
+
+  // Save to localStorage when savedListings changes
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem('savedListings', JSON.stringify(Array.from(savedListings)));
+    }
+  }, [savedListings, mounted]);
+
+  const toggleSaveListing = (listingId: string) => {
+    setSavedListings(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(listingId)) {
+        newSet.delete(listingId);
+      } else {
+        newSet.add(listingId);
+      }
+      return newSet;
+    });
+  };
 
   // Check if user has verified suites
   useEffect(() => {
@@ -166,6 +195,23 @@ function BrowseContent() {
     }
   };
 
+  const handleRefresh = async () => {
+    await fetchListings();
+  };
+
+  const handleShare = async (listing: ListingData) => {
+    const success = await share({
+      title: listing.eventTitle,
+      text: `Check out these Fire Suite tickets for ${listing.eventTitle}!`,
+      url: `${window.location.origin}/listing/${listing.slug}`,
+    });
+
+    if (!success && canShare) {
+      // Fallback was used - show toast
+      alert('Link copied to clipboard!');
+    }
+  };
+
   // Refetch when showOnlyMyListings changes
   useEffect(() => {
     if (session?.user?.id) {
@@ -191,6 +237,31 @@ function BrowseContent() {
       );
     }
 
+    // Date range filter
+    if (dateFilter !== 'all') {
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+      filtered = filtered.filter(listing => {
+        const eventDate = new Date(listing.eventDatetime);
+
+        if (dateFilter === 'today') {
+          return eventDate >= today && eventDate < new Date(today.getTime() + 24 * 60 * 60 * 1000);
+        } else if (dateFilter === 'weekend') {
+          // This weekend (next Saturday and Sunday)
+          const daysUntilSaturday = (6 - now.getDay() + 7) % 7;
+          const saturday = new Date(today.getTime() + daysUntilSaturday * 24 * 60 * 60 * 1000);
+          const monday = new Date(saturday.getTime() + 3 * 24 * 60 * 60 * 1000);
+          return eventDate >= saturday && eventDate < monday;
+        } else if (dateFilter === 'month') {
+          // This month
+          const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+          return eventDate >= today && eventDate <= endOfMonth;
+        }
+        return true;
+      });
+    }
+
     if (showOnlyMyListings && session?.user?.id) {
       // Filter to show only current user's listings
       filtered = filtered.filter(listing => {
@@ -208,7 +279,7 @@ function BrowseContent() {
     }
 
     setListings(filtered);
-  }, [selectedEvent, selectedSuiteArea, searchQuery, showOnlyMyListings, allListings, session, sortBy]);
+  }, [selectedEvent, selectedSuiteArea, searchQuery, showOnlyMyListings, allListings, session, sortBy, dateFilter]);
 
   // Calculate suite area counts
   const suiteAreaCounts = {
@@ -219,63 +290,132 @@ function BrowseContent() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header - Dark teal bar like Wispr Flow */}
-      <header className="sticky top-0 z-50 bg-accent">
+    <div className="min-h-screen bg-background pb-safe overflow-x-hidden w-full">
+        {/* Header - Dark teal bar like Wispr Flow */}
+        <header className="sticky top-0 z-50 bg-accent w-full">
         <div className="container mx-auto flex h-16 items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-accent-foreground transition-opacity hover:opacity-80">
-            🔥 Fire Suite Exchange
+          <Link href="/" className="group flex items-center gap-2 transition-opacity hover:opacity-90">
+            {/* Mobile: Just Fire Emoji */}
+            <span className="md:hidden text-2xl">🔥</span>
+
+            {/* Desktop: Cool FSE Logo */}
+            <div className="hidden md:flex items-center gap-3">
+              {/* Fire Icon Badge */}
+              <div className="relative flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 shadow-lg group-hover:scale-110 transition-transform">
+                <span className="text-2xl">🔥</span>
+                <div className="absolute inset-0 rounded-lg bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              </div>
+
+              {/* FSE Text Logo */}
+              <div className="flex flex-col">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-black tracking-tighter text-white" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                    FSE
+                  </span>
+                  <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
+                </div>
+                <span className="text-[10px] font-semibold tracking-wide text-white/70 uppercase -mt-1">
+                  Fire Suite Exchange
+                </span>
+              </div>
+            </div>
           </Link>
 
           {/* Desktop Nav */}
-          <nav className="hidden items-center gap-6 md:flex">
-            <Link href="/" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
-              Home
+          <nav className="hidden items-center gap-2 md:flex">
+            <Link
+              href="/"
+              className="group flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white/90 transition-all hover:bg-white/10 hover:text-white"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+              </svg>
+              <span>Home</span>
             </Link>
-            <Link href="/browse" className="text-sm font-medium text-accent-foreground">
-              Browse Listings
+
+            <Link
+              href="/browse"
+              className="group flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-white/10 text-white transition-all hover:bg-white/20"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+              </svg>
+              <span>Browse</span>
             </Link>
+
             {session && ((session?.user?.role as string) === 'SELLER' || (session?.user?.role as string) === 'ADMIN') && (
-              <Link href="/sell/my-listings" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
-                My Listings
+              <Link
+                href="/sell/my-listings"
+                className="group flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white/90 transition-all hover:bg-white/10 hover:text-white"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <span>My Listings</span>
               </Link>
             )}
+
             {session && (session?.user?.role as string) !== 'GUEST' && (
-              <Link href="/owners" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
-                Owners Lounge
+              <Link
+                href="/owners"
+                className="group flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white/90 transition-all hover:bg-white/10 hover:text-white"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span>Owners</span>
               </Link>
             )}
-            <Link href="/verify-suite" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
-              {hasVerifiedSuites ? 'Add Additional Suites' : 'Become a Seller'}
-            </Link>
+
             {(session?.user?.role as string) === 'APPROVER' || (session?.user?.role as string) === 'ADMIN' ? (
-              <Link href="/approver/applications" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground relative inline-flex items-center gap-2">
-                Review Applications
+              <Link
+                href="/approver/applications"
+                className="group relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white/90 transition-all hover:bg-white/10 hover:text-white"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>Review</span>
                 {pendingCount > 0 && (
-                  <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full">
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center h-5 min-w-5 px-1.5 text-xs font-bold text-white bg-red-500 rounded-full shadow-lg">
                     {pendingCount}
                   </span>
                 )}
               </Link>
             ) : null}
+
+            <div className="w-px h-6 bg-white/20 mx-2"></div>
+
             {session ? (
               <>
-                <Link href="/profile" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
-                  Profile
+                <Link
+                  href="/profile"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-white/90 transition-all hover:bg-white/10 hover:text-white"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span>Profile</span>
                 </Link>
                 <button
                   onClick={() => signOut({ callbackUrl: '/' })}
-                  className="rounded-xl border-2 border-accent-foreground bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-600"
+                  className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-sm font-bold text-white backdrop-blur-sm transition-all hover:bg-white/20 hover:scale-105 active:scale-95"
                 >
-                  Logout
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  <span>Logout</span>
                 </button>
               </>
             ) : (
               <Link
                 href="/login"
-                className="rounded-xl border-2 border-accent-foreground bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary-600"
+                className="flex items-center gap-2 rounded-lg bg-primary px-5 py-2.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-primary/90 hover:scale-105 active:scale-95"
               >
-                Login
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                <span>Login</span>
               </Link>
             )}
           </nav>
@@ -442,6 +582,30 @@ function BrowseContent() {
           )}
         </div>
 
+        {/* Date Range Quick Filters - StubHub Style */}
+        <div className="mb-4">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {[
+              { value: 'all', label: 'All Dates' },
+              { value: 'today', label: 'Today' },
+              { value: 'weekend', label: 'Weekend' },
+              { value: 'month', label: 'This Month' },
+            ].map((filter) => (
+              <button
+                key={filter.value}
+                onClick={() => setDateFilter(filter.value as typeof dateFilter)}
+                className={`px-4 py-3 rounded-xl text-sm font-bold transition-all min-h-[48px] ${
+                  dateFilter === filter.value
+                    ? 'bg-accent text-accent-foreground shadow-lg'
+                    : 'bg-card border-2 border-border text-foreground hover:border-accent hover:bg-secondary active:scale-95'
+                }`}
+              >
+                {filter.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Compact Filter Bar */}
         <div className="mb-8 rounded-2xl border border-border bg-card p-4 shadow-card-subtle">
           <div className="flex flex-col gap-4">
@@ -580,101 +744,131 @@ function BrowseContent() {
         {/* Full-width Listings */}
         <div>
           {loading ? (
-            <div className="flex items-center justify-center py-20">
-              <div className="text-center">
-                <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-primary border-r-transparent"></div>
-                <p className="mt-4 text-foreground/70">Loading listings...</p>
-              </div>
-            </div>
+            <ListingGridSkeleton count={8} />
           ) : listings.length > 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
             {listings.map((listing) => {
               const viewCount = Math.floor(Math.random() * 50) + 10;
               const isNew = new Date().getTime() - new Date(listing.createdAt).getTime() < 48 * 60 * 60 * 1000;
               const isSold = listing.status === 'SOLD';
+              const isSaved = savedListings.has(listing.listingId);
               return (
-              <div key={listing.listingId} className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card shadow-card-subtle transition-all duration-300 hover:scale-[1.02] hover:shadow-card-elevated relative">
+              <div key={listing.listingId} className="group flex flex-col overflow-hidden rounded-2xl border-2 border-border bg-card shadow-lg transition-all duration-300 hover:shadow-2xl hover:border-accent relative">
+                {/* Save Heart Button - Top Right */}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    toggleSaveListing(listing.listingId);
+                  }}
+                  className="absolute top-3 right-3 z-20 flex items-center justify-center w-11 h-11 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-all hover:scale-110 active:scale-95"
+                  aria-label={isSaved ? 'Remove from saved' : 'Save listing'}
+                >
+                  <svg
+                    className={`w-6 h-6 transition-all ${isSaved ? 'fill-red-500 stroke-red-500' : 'fill-none stroke-foreground/70'}`}
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </button>
+
+                {/* NEW Badge - Top Left Corner */}
+                {isNew && (
+                  <div className="absolute top-3 left-3 z-20 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 px-3 py-1 text-xs font-bold text-white shadow-lg">
+                    NEW
+                  </div>
+                )}
+
                 {/* Diagonal SOLD banner */}
                 {isSold && (
-                  <div className="absolute top-0 left-0 right-0 bottom-0 z-10 pointer-events-none">
-                    <div className="absolute top-[50%] left-[-20%] right-[-20%] bg-red-600 text-white text-center font-black text-2xl py-3 shadow-2xl transform -translate-y-1/2 rotate-[-25deg] opacity-90">
-                      SOLD
+                  <div className="absolute top-0 left-0 right-0 bottom-0 z-10 pointer-events-none bg-black/40 backdrop-blur-sm">
+                    <div className="absolute top-[50%] left-[-20%] right-[-20%] bg-red-600 text-white text-center font-black text-3xl py-4 shadow-2xl transform -translate-y-1/2 rotate-[-15deg]">
+                      SOLD OUT
                     </div>
                   </div>
                 )}
-                <div className={`px-3 py-2 text-center ${listing.suiteArea === 'L' ? 'bg-gradient-to-r from-green-100 to-green-50' : 'bg-gradient-to-r from-yellow-100 to-yellow-50'} ${isSold ? 'opacity-60' : ''}`}>
-                  <p className="text-xs font-bold leading-tight text-black">
-                    {formatSuiteArea(listing.suiteArea)}
-                  </p>
-                  <p className="text-xs font-bold leading-tight text-black">
-                    {listing.suiteArea === 'V' ? `V-${listing.suiteNumber}` : `Suite ${listing.suiteNumber}`}
-                  </p>
+
+                {/* Large Event Visual */}
+                <div className={`relative h-32 flex items-center justify-center ${isSold ? 'opacity-60' : ''} ${
+                  listing.suiteArea === 'L' ? 'bg-gradient-to-br from-green-400 to-teal-500' :
+                  listing.suiteArea === 'V' ? 'bg-gradient-to-br from-purple-400 to-pink-500' :
+                  'bg-gradient-to-br from-yellow-400 to-orange-500'
+                }`}>
+                  <div className="text-6xl drop-shadow-lg">🎵</div>
                 </div>
-                <div className="flex flex-1 flex-col p-4">
-                  <h3 className="mb-1.5 line-clamp-2 min-h-[2.5rem] text-base font-semibold text-foreground text-center font-serif italic">
+
+                {/* Card Content */}
+                <div className="flex flex-1 flex-col p-5">
+                  {/* Event Title */}
+                  <h3 className="mb-2 line-clamp-2 min-h-[3rem] text-xl font-bold text-foreground leading-tight">
                     {listing.eventTitle}
                   </h3>
 
-                  {/* Badges - positioned below title */}
-                  <div className="mb-2 flex items-center justify-center gap-1.5">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setShowVerifiedModal(true);
-                      }}
-                      className="flex items-center gap-1 rounded-full bg-teal-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm cursor-pointer transition-all hover:bg-teal-600 hover:scale-105"
-                      title="Click to learn more about verified sellers"
-                    >
-                      <svg className="h-2.5 w-2.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span>VERIFIED</span>
-                    </button>
-                    {isNew && (
-                      <div className="rounded-full bg-gradient-to-r from-blue-500 to-purple-500 px-2 py-0.5 text-[10px] font-bold text-white shadow-sm animate-pulse">
-                        NEW ✨
-                      </div>
-                    )}
+                  {/* Venue */}
+                  <div className="mb-3 flex items-center gap-2 text-sm text-foreground/70">
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span className="font-semibold">Ford Amphitheater</span>
                   </div>
 
-                  <div className="mb-3 flex items-center justify-between text-xs text-foreground/70">
+                  {/* Date & Time */}
+                  <div className="mb-3 flex items-center gap-2 text-sm font-medium text-foreground">
+                    <svg className="w-5 h-5 flex-shrink-0 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
                     <span>
                       {new Date(listing.eventDatetime).toLocaleDateString('en-US', {
+                        weekday: 'short',
                         month: 'short',
                         day: 'numeric',
                         hour: 'numeric',
                         minute: '2-digit',
                       })}
                     </span>
-                    <span className="flex items-center gap-1">
-                      <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      {viewCount}
+                  </div>
+
+                  {/* Suite Badge */}
+                  <div className="mb-4">
+                    <span className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-bold ${
+                      listing.suiteArea === 'L' ? 'bg-green-100 text-green-900' :
+                      listing.suiteArea === 'V' ? 'bg-purple-100 text-purple-900' :
+                      'bg-yellow-100 text-yellow-900'
+                    }`}>
+                      {formatSuiteArea(listing.suiteArea)} • {listing.suiteArea === 'V' ? `V-${listing.suiteNumber}` : `Suite ${listing.suiteNumber}`}
                     </span>
                   </div>
 
-                  <div className="mb-3 mt-auto space-y-1 border-t border-border pt-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-foreground/70">Price per seat</span>
-                      <span className="text-xl font-bold bg-gradient-to-r from-teal-600 to-blue-600 bg-clip-text text-transparent">${listing.pricePerSeat}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-foreground/70">Available seats</span>
-                      <span className="text-sm font-semibold text-foreground">{listing.quantity}</span>
+                  {/* PRICE - StubHub Style Prominence */}
+                  <div className="mb-4 p-4 rounded-xl bg-gradient-to-r from-accent/5 to-primary/5 border-2 border-accent/20">
+                    <div className="flex items-baseline justify-between">
+                      <div>
+                        <p className="text-xs font-semibold text-foreground/60 uppercase tracking-wide mb-1">From</p>
+                        <p className="text-4xl font-black text-accent">${listing.pricePerSeat}</p>
+                        <p className="text-xs font-medium text-foreground/70 mt-1">{listing.quantity} seats available</p>
+                      </div>
+                      <div className="flex items-center gap-1 text-foreground/50">
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <span className="text-sm font-semibold">{viewCount}</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
+                  {/* Action Buttons - StubHub Style */}
+                  <div className="flex flex-col gap-3">
                     {showOnlyMyListings ? (
                       // Edit mode - show edit button for seller's own listings
                       <Link
                         href={`/sell/edit/${listing.listingId}`}
-                        className="inline-flex h-9 sm:h-8 w-full items-center justify-center rounded-lg border-2 border-foreground bg-blue-600 px-3 text-xs sm:text-xs font-semibold text-white transition-all duration-300 hover:bg-blue-700 hover:shadow-lg active:scale-[0.98] group-hover:scale-105"
+                        className="inline-flex min-h-[52px] w-full items-center justify-center rounded-xl border-2 border-foreground bg-blue-600 px-6 text-base font-bold text-white shadow-md transition-all duration-300 hover:bg-blue-700 hover:shadow-xl active:scale-[0.97]"
                       >
-                        <svg className="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                         </svg>
                         Edit Listing
@@ -684,31 +878,35 @@ function BrowseContent() {
                       <>
                         <Link
                           href={`/listing/${listing.slug}`}
-                          className={`inline-flex h-9 sm:h-8 w-full items-center justify-center rounded-lg border-2 border-foreground bg-primary px-3 text-xs sm:text-xs font-semibold text-foreground transition-all duration-300 hover:bg-primary-600 hover:shadow-lg active:scale-[0.98] group-hover:scale-105 ${isSold ? 'opacity-50' : ''}`}
+                          className={`inline-flex min-h-[52px] w-full items-center justify-center rounded-xl bg-accent px-6 text-base font-bold text-accent-foreground shadow-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-xl active:scale-[0.98] ${isSold ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                           View Details
-                          <svg className="ml-1 h-3 w-3 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                           </svg>
                         </Link>
                         {!isSold && (
-                          <div className="grid grid-cols-3 gap-1.5">
+                          <div className="grid grid-cols-3 gap-2">
                             {listing.contactEmail && (
                               <a
                                 href={`mailto:${listing.contactEmail}`}
-                                className="inline-flex h-9 sm:h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-[11px] sm:text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
+                                className="inline-flex min-h-[48px] items-center justify-center rounded-lg border-2 border-border bg-card px-2 text-xs font-bold text-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground hover:border-accent active:scale-95"
                                 title="Email Seller"
                               >
-                                Email
+                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
                               </a>
                             )}
                             {listing.contactPhone && (
                               <a
                                 href={`sms:${listing.contactPhone}`}
-                                className="inline-flex h-9 sm:h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-[11px] sm:text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
+                                className="inline-flex min-h-[48px] items-center justify-center rounded-lg border-2 border-border bg-card px-2 text-xs font-bold text-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground hover:border-accent active:scale-95"
                                 title="Text Seller"
                               >
-                                Text
+                                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                </svg>
                               </a>
                             )}
                             {listing.contactMessenger && (
@@ -716,10 +914,12 @@ function BrowseContent() {
                                 href={`https://m.me/${listing.contactMessenger}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex h-9 sm:h-8 items-center justify-center rounded-lg border-2 border-foreground bg-background px-1 text-[11px] sm:text-xs font-semibold text-foreground transition-all duration-200 hover:bg-secondary hover:scale-105"
+                                className="inline-flex min-h-[48px] items-center justify-center rounded-lg border-2 border-border bg-card px-2 text-xs font-bold text-foreground transition-all duration-200 hover:bg-accent hover:text-accent-foreground hover:border-accent active:scale-95"
                                 title="Message on Facebook Messenger"
                               >
-                                FB
+                                <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M12 0C5.373 0 0 4.975 0 11.111c0 3.497 1.745 6.616 4.472 8.652V24l4.086-2.242c1.09.301 2.246.464 3.442.464 6.627 0 12-4.974 12-11.111C24 4.975 18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26L10.732 8l3.131 3.259L19.752 8l-6.561 6.963z"/>
+                                </svg>
                               </a>
                             )}
                           </div>
@@ -808,13 +1008,13 @@ function BrowseContent() {
           >
             {/* Header with close button */}
             <div className="mb-6 flex items-center justify-between">
-              <div>
+              <div className="hidden md:block">
                 <h3 className="text-2xl font-bold text-foreground">Venue Map</h3>
                 <p className="text-sm text-foreground/70">Click a section to filter tickets by suite area</p>
               </div>
               <button
                 onClick={() => setShowVenueMap(false)}
-                className="rounded-lg p-2 text-foreground/70 transition-all hover:bg-secondary hover:text-foreground"
+                className="rounded-lg p-2 text-foreground/70 transition-all hover:bg-secondary hover:text-foreground ml-auto"
                 aria-label="Close map"
               >
                 <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -877,82 +1077,8 @@ function BrowseContent() {
         document.body
       )}
 
-      {/* Verified Badge Information Modal */}
-      {mounted && showVerifiedModal && createPortal(
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 p-4"
-          onClick={() => setShowVerifiedModal(false)}
-        >
-          <div
-            className="relative w-full max-w-lg rounded-2xl border-2 border-border bg-card p-6 sm:p-8 shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close button */}
-            <button
-              onClick={() => setShowVerifiedModal(false)}
-              className="absolute right-4 top-4 rounded-lg p-2 text-foreground/70 transition-all hover:bg-secondary hover:text-foreground"
-              aria-label="Close"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            {/* Header */}
-            <div className="mb-6">
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-teal-500 px-3 py-1.5 text-sm font-bold text-white shadow-lg">
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span>VERIFIED SELLER</span>
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">What does this mean?</h3>
-            </div>
-
-            {/* Content */}
-            <div className="space-y-4">
-              <div className="rounded-xl bg-green-50 border border-green-200 p-4">
-                <div className="flex items-start gap-3">
-                  <svg className="h-6 w-6 flex-shrink-0 text-green-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-1">Verified Ownership</h4>
-                    <p className="text-sm text-foreground/80">
-                      This seller has been verified as a legitimate Fire Suite owner at Ford Amphitheater. They have provided proof of ownership and been approved by our team.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-xl bg-yellow-50 border border-yellow-200 p-4">
-                <div className="flex items-start gap-3">
-                  <svg className="h-6 w-6 flex-shrink-0 text-yellow-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  <div>
-                    <h4 className="font-semibold text-foreground mb-1">Stay Vigilant</h4>
-                    <p className="text-sm text-foreground/80">
-                      While we verify suite ownership, always exercise caution when purchasing tickets. Communicate directly with sellers, verify ticket details, and use secure payment methods.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="mt-6 pt-6 border-t border-border">
-              <button
-                onClick={() => setShowVerifiedModal(false)}
-                className="w-full rounded-lg border-2 border-foreground bg-primary px-6 py-3 font-semibold text-foreground transition-all hover:bg-primary-600"
-              >
-                Got it, thanks!
-              </button>
-            </div>
-          </div>
-        </div>,
-        document.body
-      )}
+      {/* Bottom Navigation */}
+      <BottomNav />
     </div>
   );
 }

@@ -78,6 +78,46 @@ export default function ApproverApplicationsPage() {
     }
   };
 
+  const handleRevoke = async (applicationId: string) => {
+    const reason = prompt('Please provide a reason for revoking this approval:');
+    if (reason === null) return; // User cancelled
+    if (!reason.trim()) {
+      alert('A reason is required to revoke an approval.');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to revoke this approval? This will prevent the user from listing tickets.')) return;
+
+    setProcessingId(applicationId);
+    setError('');
+    setSuccess('');
+
+    try {
+      const response = await fetch(`/api/applications/${applicationId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: 'DENIED',
+          deniedReason: `REVOKED: ${reason}`,
+          adminNote: 'Approval revoked by approver',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to revoke application');
+      }
+
+      setSuccess('Application approval revoked successfully');
+      fetchApplications();
+    } catch (err: any) {
+      setError(err.message || 'Failed to revoke application');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const handleDeny = async (applicationId: string) => {
     const reason = prompt('Please provide a reason for denial (optional):');
     if (reason === null) return; // User cancelled
@@ -225,7 +265,7 @@ export default function ApproverApplicationsPage() {
               {applications.map((app) => (
                 <div
                   key={app.id}
-                  className="bg-card rounded-xl shadow-card p-6 border border-border"
+                  className="relative bg-card rounded-xl shadow-card p-6 border border-border"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div>
@@ -336,6 +376,18 @@ export default function ApproverApplicationsPage() {
                         className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {processingId === app.id ? 'Processing...' : 'Deny'}
+                      </button>
+                    </div>
+                  )}
+
+                  {app.status === 'APPROVED' && (
+                    <div className="absolute bottom-4 right-4">
+                      <button
+                        onClick={() => handleRevoke(app.id)}
+                        disabled={processingId === app.id}
+                        className="bg-orange-600 text-white px-3 py-1 rounded text-xs font-semibold hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {processingId === app.id ? 'Processing...' : 'Revoke'}
                       </button>
                     </div>
                   )}

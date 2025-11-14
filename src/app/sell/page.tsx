@@ -35,7 +35,6 @@ export default function SellPage() {
     contactPhone: '',
     contactLink: '',
     contactMessenger: '',
-    allowMessages: false,
     notes: '',
     seatNumbers: '', // Will be set based on suite type
   });
@@ -231,7 +230,6 @@ export default function SellPage() {
           contactPhone: formData.contactPhone || null,
           contactLink: formData.contactLink || null,
           contactMessenger: formData.contactMessenger || null,
-          allowMessages: formData.allowMessages,
           notes: formData.notes || null,
           seatNumbers: formData.seatNumbers || null,
         }),
@@ -268,14 +266,15 @@ export default function SellPage() {
     );
   }
 
-  // Redirect to verification if no verified suites (unless admin)
-  if (!loadingSuites && verifiedSuites.length === 0 && session?.user?.role !== 'ADMIN') {
+  // Redirect to verification if no verified suites
+  if (!loadingSuites && verifiedSuites.length === 0) {
     return (
       <div className="min-h-screen bg-background">
         <header className="sticky top-0 z-50 bg-accent">
           <div className="container mx-auto flex h-16 items-center justify-between px-4">
             <Link href="/" className="text-xl font-bold text-accent-foreground">
-              🔥 Fire Suite Exchange
+              <span className="md:hidden">🔥</span>
+              <span className="hidden md:inline">🔥 Fire Suite Exchange</span>
             </Link>
           </div>
         </header>
@@ -336,7 +335,8 @@ export default function SellPage() {
       <header className="border-b bg-white">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="text-2xl font-bold text-blue-600">
-            🔥 Fire Suite Exchange
+            <span className="md:hidden">🔥</span>
+            <span className="hidden md:inline">🔥 Fire Suite Exchange</span>
           </Link>
           <nav className="flex gap-6">
             <Link href="/browse" className="text-sm font-medium hover:text-blue-600">
@@ -669,20 +669,6 @@ export default function SellPage() {
                 <p className="mt-1 text-xs text-gray-600">
                   Enter your Facebook username (e.g., "john.smith" from facebook.com/john.smith)
                 </p>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  id="allowMessages"
-                  name="allowMessages"
-                  type="checkbox"
-                  checked={formData.allowMessages}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="allowMessages" className="ml-2 text-sm text-gray-700">
-                  Allow buyers to message me through the platform
-                </label>
               </div>
             </div>
 

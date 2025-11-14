@@ -37,7 +37,6 @@ export default function EditListingPage() {
     contactPhone: '',
     contactLink: '',
     contactMessenger: '',
-    allowMessages: false,
     notes: '',
     seatNumbers: '',
   });
@@ -126,7 +125,6 @@ export default function EditListingPage() {
         contactPhone: listing.contactPhone || '',
         contactLink: listing.contactLink || '',
         contactMessenger: listing.contactMessenger || '',
-        allowMessages: listing.allowMessages,
         notes: listing.notes || '',
         seatNumbers: listing.seatNumbers || '',
       });
@@ -231,7 +229,6 @@ export default function EditListingPage() {
           contactPhone: formData.contactPhone || null,
           contactLink: formData.contactLink || null,
           contactMessenger: formData.contactMessenger || null,
-          allowMessages: formData.allowMessages,
           notes: formData.notes || null,
           seatNumbers: formData.seatNumbers || null,
         }),
@@ -605,20 +602,6 @@ export default function EditListingPage() {
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="your.username"
                 />
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  id="allowMessages"
-                  name="allowMessages"
-                  type="checkbox"
-                  checked={formData.allowMessages}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label htmlFor="allowMessages" className="ml-2 text-sm text-gray-700">
-                  Allow buyers to message me through the platform
-                </label>
               </div>
             </div>
 

@@ -78,8 +78,8 @@ export default function VenueMap({ selectedArea, onAreaSelect }: VenueMapProps) 
 
   const renderMap = (className: string = "w-full h-auto") => (
     <div className="relative w-full">
-      {/* Ford Amphitheatre Title */}
-      <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10">
+      {/* Ford Amphitheatre Title - Hidden on mobile */}
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 z-10 hidden md:block">
         <h2 className="text-lg md:text-2xl font-bold text-gray-800 tracking-wide">
           FORD AMPHITHEATRE
         </h2>
