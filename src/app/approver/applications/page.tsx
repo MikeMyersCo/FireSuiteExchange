@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Header from '@/components/Header';
 
 export default function ApproverApplicationsPage() {
   const { data: session, status } = useSession();
@@ -170,22 +171,7 @@ export default function ApproverApplicationsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-accent">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="text-xl font-bold text-accent-foreground">
-            🔥 Fire Suite Exchange - Approver
-          </Link>
-          <nav className="hidden md:flex gap-6">
-            <Link href="/approver/applications" className="text-sm font-medium text-accent-foreground">
-              Applications
-            </Link>
-            <Link href="/" className="text-sm font-medium text-accent-foreground/80 hover:text-accent-foreground">
-              Back to Site
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">

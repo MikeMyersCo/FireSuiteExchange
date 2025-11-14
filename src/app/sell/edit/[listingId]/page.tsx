@@ -5,6 +5,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { EVENT_NAMES, EVENTS_2026 } from '@/lib/events-2026';
+import Header from '@/components/Header';
 
 // Force dynamic rendering - this page requires authentication
 export const dynamic = 'force-dynamic';
@@ -266,26 +267,8 @@ export default function EditListingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="border-b bg-white">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="text-2xl font-bold text-blue-600">
-            🔥 Fire Suite Exchange
-          </Link>
-          <nav className="flex gap-6">
-            <Link href="/browse" className="text-sm font-medium hover:text-blue-600">
-              Browse Listings
-            </Link>
-            <Link href="/sell" className="text-sm font-medium hover:text-blue-600">
-              List Tickets
-            </Link>
-            <Link href="/sell/my-listings" className="text-sm font-medium hover:text-blue-600">
-              My Listings
-            </Link>
-          </nav>
-        </div>
-      </header>
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden w-full">
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">

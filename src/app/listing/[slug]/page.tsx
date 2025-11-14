@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import Header from '@/components/Header';
 
 interface ListingDetails {
   id: string;
@@ -198,13 +199,7 @@ Thank you!`;
   if (error || !listing) {
     return (
       <div className="min-h-screen bg-background">
-        <header className="sticky top-0 z-50 bg-accent">
-          <div className="container mx-auto flex h-16 items-center justify-between">
-            <Link href="/" className="text-xl font-bold text-accent-foreground">
-              🔥 Fire Suite Exchange
-            </Link>
-          </div>
-        </header>
+        <Header />
 
         <main className="container mx-auto px-4 py-12">
           <div className="max-w-2xl mx-auto text-center">
@@ -231,24 +226,7 @@ Thank you!`;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-accent">
-        <div className="container mx-auto flex h-16 items-center justify-between">
-          <Link href="/" className="text-xl font-bold text-accent-foreground transition-opacity hover:opacity-80">
-            🔥 Fire Suite Exchange
-          </Link>
-          <nav className="hidden items-center gap-6 md:flex">
-            <Link href="/browse" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
-              Browse Listings
-            </Link>
-            {session ? (
-              <Link href="/sell" className="text-sm font-medium text-accent-foreground/90 transition-colors hover:text-accent-foreground">
-                List Tickets
-              </Link>
-            ) : null}
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 md:py-12">

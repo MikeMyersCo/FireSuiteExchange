@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { SUITE_DATA, formatSuiteName } from '@/lib/constants';
 import { createPortal } from 'react-dom';
+import Header from '@/components/Header';
 
 export default function VerifySuitePage() {
   const { data: session, status } = useSession();
@@ -163,24 +164,7 @@ export default function VerifySuitePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-accent">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="text-xl font-bold text-accent-foreground">
-            🔥 Fire Suite Exchange
-          </Link>
-          <nav className="hidden md:flex gap-6">
-            <Link href="/browse" className="text-sm font-medium text-accent-foreground/80 hover:text-accent-foreground">
-              Browse Listings
-            </Link>
-            <Link href="/verify-suite" className="text-sm font-medium text-accent-foreground">
-              Verify Suite
-            </Link>
-            <Link href="/sell" className="text-sm font-medium text-accent-foreground/80 hover:text-accent-foreground">
-              List Tickets
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <Header />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
